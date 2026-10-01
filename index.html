@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffc83d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="日常中文">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>日常中文 – Mini BD de chinois pour débutant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -276,6 +283,20 @@ h2 {
   background: var(--panel); color: var(--ink);
 }
 .eps a:hover { background: var(--sun-soft); }
+.eps a.eps-ex { background: var(--sun); color: #1b1a3a; }
+.eps a.eps-ex:hover { background: var(--sun-soft); }
+#exercices { scroll-margin-top: 1rem; }
+@media (min-width: 700px) { #exercices { scroll-margin-top: 5.5rem; } }
+.to-top {
+  position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 19;
+  font: inherit; font-weight: 800; font-size: 1rem; cursor: pointer;
+  min-height: 3rem; padding: .5rem 1.1rem;
+  border: 3px solid var(--ink); border-radius: 999px;
+  background: var(--panel); color: var(--ink); box-shadow: 4px 4px 0 var(--ink);
+}
+.to-top[hidden] { display: none; }
+.to-top:hover { background: var(--sun-soft); }
+.to-top:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .eps a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 .episode { margin-top: 3.4rem; scroll-margin-top: 1rem; }
@@ -295,6 +316,100 @@ h2 {
 
 .range { width: min(220px, 60vw); min-height: 2rem; accent-color: var(--teal-dark); cursor: pointer; }
 .range:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ---------- Activities: role-play, quiz, progress ---------- */
+.stars { color: #d68a00; font-size: 1.05rem; letter-spacing: .06em; font-weight: 800; }
+:root[data-theme="dark"] .stars { color: #ffc83d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stars { color: #ffc83d; } }
+.pr-row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .7rem; }
+.flash { animation: flashbox 1.8s ease-out 1; }
+@keyframes flashbox { 0%, 35% { box-shadow: 0 0 0 5px var(--focus), 4px 4px 0 var(--ink); } 100% { box-shadow: 0 0 0 0 transparent, 4px 4px 0 var(--ink); } }
+.muted { color: var(--muted); font-weight: 700; }
+
+.activity { background: var(--panel); border: 4px solid var(--ink); box-shadow: 7px 7px 0 var(--ink); padding: 1rem 1.2rem 1.3rem; margin-top: 2.6rem; scroll-margin-top: 1rem; }
+@media (min-width: 700px) { .activity { scroll-margin-top: 5.5rem; } }
+.activity h2 { margin: 0 0 .5rem; font-size: 1.8rem; }
+.activity .practice-note { margin: 0 0 1rem; }
+.act-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem 1rem; }
+.act-form label { display: grid; gap: .25rem; font-weight: 800; font-size: .9rem; min-width: 0; }
+.act-form .voice-select { max-width: 100%; }
+.linkbtn { display: inline-block; text-decoration: none; line-height: 1.7; }
+.rv-ctl { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+.rv-head { margin: .2rem 0 .6rem; }
+#rvbox, #qzbox, #rpout { margin-top: 1.1rem; padding-top: 1rem; border-top: 3px dashed var(--ink); }
+#rvbox[hidden], #qzbox[hidden], #rpout[hidden] { display: none; }
+.rv-card { max-width: 440px; }
+.rv-card .word .fr { filter: none; font-size: 1.15rem; color: var(--ink); font-weight: 800; }
+body.no-hz .rv-card .hz { display: block; }
+body.no-py .rv-card .py { display: block; }
+body.no-fr .rv-card .fr { filter: none; }
+body .rv-card.rv-covered .hz, body .rv-card.rv-covered .py { display: none; }
+
+.prog-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .8rem; margin: .4rem 0 1.2rem; }
+.stat { border: 3px solid var(--ink); border-radius: 12px; padding: .5rem .8rem; background: var(--bubble); display: grid; gap: .1rem; }
+.stat b { font-family: 'Bangers', 'Impact', sans-serif; font-weight: 400; font-size: 2rem; letter-spacing: .04em; line-height: 1.1; }
+.stat span { font-size: .85rem; font-weight: 700; color: var(--muted); line-height: 1.25; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 11rem) 1fr 3rem; align-items: center; gap: .6rem; margin: .3rem 0; font-size: .92rem; font-weight: 700; }
+.bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 14px; border: 3px solid var(--ink); border-radius: 8px; background: var(--bubble); overflow: hidden; display: block; }
+.bar i { display: block; height: 100%; background: var(--teal-dark); }
+.bar-pc { text-align: right; color: var(--muted); }
+.weak-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.chip {
+  font: inherit; font-weight: 800; cursor: pointer; min-height: 2.4rem;
+  border: 3px solid var(--ink); border-radius: 999px; padding: .15rem .8rem;
+  background: var(--bubble); color: var(--ink);
+}
+.chip small { color: #d68a00; letter-spacing: .05em; }
+:root[data-theme="dark"] .chip small { color: #ffc83d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip small { color: #ffc83d; } }
+.chip:hover { background: var(--sun-soft); }
+.chip:focus-visible, .qz-opt:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.qz-head { margin-bottom: .6rem; }
+.qz-prompt { margin: .4rem 0 .9rem; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.qz-big { font-size: 1.9rem; font-weight: 800; line-height: 1.25; flex-basis: 100%; }
+.qz-big[lang] { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.qz-q { font-weight: 800; }
+.qz-opts { display: grid; grid-template-columns: 1fr; gap: .6rem; }
+@media (min-width: 640px) { .qz-opts { grid-template-columns: 1fr 1fr; } }
+.qz-opt {
+  display: flex; align-items: center; gap: .7rem; text-align: left;
+  font: inherit; font-weight: 700; color: var(--ink); cursor: pointer;
+  background: var(--bubble); border: 3px solid var(--ink); border-radius: 12px; padding: .6rem .8rem; min-height: 3rem;
+}
+.qz-opt[lang], .qz-opt span[lang] { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 1.2rem; }
+.qz-opt:hover:not(:disabled) { background: var(--sun-soft); }
+.qz-n { flex: none; display: grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 2px solid var(--ink); font-size: .85rem; }
+.qz-opt.good { background: var(--sun-soft); border-color: var(--pinyin); color: var(--pinyin); }
+.qz-opt.bad { border-color: var(--bad); color: var(--bad); }
+.qz-opt:disabled { cursor: default; }
+.qz-fb { margin-top: .8rem; min-height: 1.5rem; }
+.fb-ok { color: var(--pinyin); } .fb-ko { color: var(--bad); }
+.qz-wrong { margin: .3rem 0 0; padding-left: 1.2rem; }
+
+.rpbar {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  width: min(620px, calc(100vw - 24px)); padding: .7rem .9rem;
+  background: var(--panel); color: var(--ink);
+  border: 3px solid var(--ink); border-radius: 16px; box-shadow: 5px 5px 0 var(--ink);
+}
+.rpbar[hidden] { display: none; }
+.rp-msg { font-weight: 800; margin-bottom: .5rem; line-height: 1.35; }
+.rp-btns { display: flex; flex-wrap: wrap; gap: .5rem; }
+.rp-btns [hidden] { display: none; }
+body.rp-on .float-stop, body.rp-on .to-top { display: none; }
+body.rp-on { padding-bottom: 9rem; }
+.line.rp-mine .bubble { box-shadow: 0 0 0 3px var(--sun); }
+body.rp-hint-py .line.rp-mine .bubble .hz { display: none; }
+body.rp-hint-fr .line.rp-mine .bubble .hz, body.rp-hint-fr .line.rp-mine .bubble .py { display: none; }
+
+.install { flex-basis: 100%; border: 3px solid var(--ink); border-radius: 12px; padding: .4rem .8rem; background: var(--bubble); }
+.install summary { cursor: pointer; font-weight: 800; padding: .2rem 0; }
+.install summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.install p { margin: .4rem 0; font-size: .95rem; }
+.install[open] summary { margin-bottom: .3rem; }
 
 /* Animation of the characters and props, only while their panel is being read */
 .mouth-talk { opacity: 0; }
@@ -419,7 +534,7 @@ h2 {
 <body>
 <div class="wrap">
   <header>
-    <h1><span class="h-zh">日常中文</span><span class="h-fr">Denis et Xiao Lin</span></h1>
+    <h1 id="top" tabindex="-1"><span class="h-zh">日常中文</span><span class="h-fr">Denis et Xiao Lin</span></h1>
     <p class="intro">Douze mini épisodes pour débutant : se présenter, commander, acheter, travailler, manger en famille, faire ses courses, se promener, prendre le métro… Touche une bulle pour l'écouter, puis 🎤 pour t'entraîner à la dire.</p>
     <details class="qr" id="qr">
       <summary>📱 Ouvrir sur téléphone ou tablette (QR code)</summary>
@@ -472,6 +587,25 @@ h2 {
       <input type="range" id="ambvol" class="range" min="0" max="100" value="60" aria-label="Volume du fond sonore">
     </div>
     <p class="status" id="voicehint" hidden></p>
+    <div class="speed" role="group" aria-label="Affichage">
+      <span class="speed-label">Taille du texte</span>
+      <select id="fontsize" class="voice-select" aria-label="Taille du texte"><option value="100">Normale</option><option value="118">Grande</option><option value="135">Très grande</option></select>
+      <span class="speed-label">Thème</span>
+      <select id="themesel" class="voice-select" aria-label="Thème"><option value="auto">Automatique</option><option value="light">Clair</option><option value="dark">Sombre</option></select>
+    </div>
+    <div class="speed" role="group" aria-label="Vocabulaire et progression">
+      <button type="button" class="tool-btn" id="exportbtn">⬇ Exporter le vocabulaire</button>
+      <button type="button" class="tool-btn" id="copyvocab">📋 Copier</button>
+      <button type="button" class="tool-btn" id="saveprog">💾 Copier ma progression</button>
+      <button type="button" class="tool-btn" id="loadprog">📥 Importer ma progression</button>
+    </div>
+    <details class="install" id="installbox">
+      <summary>📲 Installer l'appli et l'utiliser hors connexion</summary>
+      <p><b>Android / ordinateur (Chrome, Edge)</b> : touche « Installer » quand il apparaît, ou ouvre le menu du navigateur puis « Installer l'application ».</p>
+      <p><b>iPhone / iPad (Safari)</b> : touche le bouton Partager, puis « Sur l'écran d'accueil ». <b>Mac (Safari)</b> : Fichier, puis « Ajouter au Dock ».</p>
+      <button type="button" class="tool-btn" id="installbtn" hidden>📲 Installer</button>
+      <p class="muted" id="offstate"></p>
+    </details>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
   </div>
 
@@ -489,9 +623,46 @@ h2 {
 
     <div id="episodes"></div>
 
-    <h2>Mots à retenir</h2>
+    <h2 id="exercices" tabindex="-1">Mots à retenir et exercices</h2>
     <p class="practice-note">Sous chaque phrase de la BD et chaque mot, touche 🎤 et prononce-le : la page vérifie qu'elle t'a compris et te laisse comparer ta voix au modèle. Le test repère les sons manquants ou différents, mais il ne juge pas finement les tons. Il fonctionne surtout sur Chrome, Edge et Safari, avec le micro autorisé.</p>
     <div id="wordgroups"></div>
+
+    <section class="activity" id="jeu" aria-labelledby="jeu-title">
+      <h2 id="jeu-title" tabindex="-1">🎭 Jeu de rôle</h2>
+      <p class="practice-note">Tu joues un personnage : la page lit les répliques des autres, puis c'est à toi de dire la tienne au micro. Le fond sonore est coupé pendant le jeu pour ne pas gêner l'écoute.</p>
+      <div class="act-form">
+        <label>Épisode <select id="rpep" class="voice-select"></select></label>
+        <label>Je joue <select id="rprole" class="voice-select"><option value="denis">Denis</option><option value="other">L'autre personnage</option></select></label>
+        <label>Aide <select id="rphint" class="voice-select"><option value="full">Texte complet</option><option value="py">Pinyin et traduction</option><option value="fr">Traduction seulement</option></select></label>
+        <button type="button" class="playall" id="rpstart">🎭 Commencer</button>
+      </div>
+      <div id="rpout" hidden></div>
+    </section>
+
+    <section class="activity" id="quiz" aria-labelledby="quiz-title">
+      <h2 id="quiz-title" tabindex="-1">🧩 Quiz</h2>
+      <p class="practice-note">Dix questions pour vérifier ce que tu as retenu. Les erreurs sont ajoutées à tes révisions. Au clavier, les touches 1 à 4 choisissent une réponse.</p>
+      <div class="act-form">
+        <label>Type de question <select id="qzmode" class="voice-select"><option value="mix">Mélange</option><option value="listen">Écouter, choisir le sens</option><option value="read">Lire, choisir le pinyin</option><option value="mean">Voir le sens, choisir les caractères</option></select></label>
+        <label>Contenu <select id="qzpool" class="voice-select"><option value="all">Mots et phrases</option><option value="word">Mots seulement</option><option value="line">Phrases seulement</option></select></label>
+        <button type="button" class="playall" id="qzstart">🧩 Commencer</button>
+      </div>
+      <div id="qzbox" hidden></div>
+    </section>
+
+    <section class="activity" id="progres" aria-labelledby="progres-title">
+      <h2 id="progres-title" tabindex="-1">📈 Mes progrès et révisions</h2>
+      <p class="practice-note">Tes scores sont gardés dans ce navigateur. Les phrases réussies reviennent de moins en moins souvent, celles qui résistent reviennent plus vite.</p>
+      <div class="prog-summary" id="progsum"></div>
+      <div id="progeps"></div>
+      <h3 class="group-title">À revoir</h3>
+      <div class="weak-list" id="progweak"></div>
+      <div class="act-form">
+        <button type="button" class="playall" id="rvstart">▶ Réviser (10)</button>
+        <button type="button" class="tool-btn" id="rvreset">Effacer mes progrès</button>
+      </div>
+      <div id="rvbox" hidden></div>
+    </section>
 
     <section class="note">
       <h2>Trois pièges de prononciation</h2>
@@ -508,6 +679,17 @@ h2 {
   </main>
 </div>
 
+<div class="rpbar" id="rpbar" hidden role="region" aria-label="Jeu de rôle">
+  <div class="rp-msg" id="rpmsg" aria-live="polite"></div>
+  <div class="rp-btns">
+    <button type="button" class="tool-btn" id="rpretry" hidden>↻ Réessayer</button>
+    <button type="button" class="tool-btn" id="rpmodel" hidden>▶ Modèle</button>
+    <button type="button" class="tool-btn" id="rpdone" hidden>✔ J'ai dit la phrase</button>
+    <button type="button" class="tool-btn" id="rpskip" hidden>Passer →</button>
+    <button type="button" class="playall" id="rpquit">■ Arrêter</button>
+  </div>
+</div>
+<button type="button" class="to-top" id="totop" hidden aria-label="Retour en haut de la page">↑ Haut</button>
 <button type="button" class="float-stop" id="floatstop" hidden>■ Arrêter la lecture</button>
 
 <script>
@@ -2819,6 +3001,7 @@ var qrcode = function() {
 <script>
 (function () {
   var INK = '#1b1a3a';
+  var RP = { active: false }, RV = { active: false }, rpGuard = 0;
   var SPK = {
     denis:    { name: 'Denis', color: '#1fa89a' },
     lin:      { name: 'Xiǎo Lín 小林', color: '#ff6f91' },
@@ -3737,7 +3920,7 @@ var qrcode = function() {
 
   function practiceHtml() {
     return '<div class="practice">' +
-        '<button type="button" class="mic-btn" aria-pressed="false">🎤 Je prononce</button>' +
+        '<div class="pr-row"><button type="button" class="mic-btn" aria-pressed="false">🎤 Je prononce</button><span class="stars"></span></div>' +
         '<div class="result" aria-live="polite" hidden>' +
           '<div class="verdict"></div><div class="chars"></div><div class="heard"></div>' +
           '<button type="button" class="mini retry" data-act="retry" hidden>Réessayer sans enregistrer ma voix</button>' +
@@ -3755,7 +3938,7 @@ var qrcode = function() {
     var hz = l[1];
     var target = hz.replace(/[A-Za-z]+/g, '');
     var extra = /[A-Za-z]/.test(hz) ? 3 : 0;
-    return '<div class="line" data-practice data-zh="' + attr(target) + '" data-accept="[]" data-extra="' + extra + '">' +
+    return '<div class="line" data-practice data-key="' + attr('l:' + hz) + '" data-zh="' + attr(target) + '" data-accept="[]" data-extra="' + extra + '">' +
       '<button type="button" class="bubble" style="--spk:' + sp.color + '" data-who="' + l[0] + '" data-zh="' + attr(hz) + '" aria-label="Écouter : ' + attr(l[3]) + '">' +
         '<span class="spk-icon" aria-hidden="true">🔊</span>' +
         '<div class="who">' + sp.name + '</div>' +
@@ -3807,6 +3990,18 @@ var qrcode = function() {
     a.textContent = n + '. ' + ep.fr;
     navEl.appendChild(a);
   });
+  (function () {
+    var ex = document.createElement('a');
+    ex.href = '#exercices';
+    ex.className = 'eps-ex';
+    ex.textContent = '🎤 Exercices de prononciation';
+    navEl.appendChild(ex);
+    [['#jeu', '🎭 Jeu de rôle'], ['#quiz', '🧩 Quiz'], ['#progres', '📈 Progrès']].forEach(function (c) {
+      var x = document.createElement('a');
+      x.href = c[0]; x.className = 'eps-ex'; x.textContent = c[1];
+      navEl.appendChild(x);
+    });
+  })();
 
   var wgEl = document.getElementById('wordgroups');
   WORD_GROUPS.forEach(function (g) {
@@ -3822,6 +4017,7 @@ var qrcode = function() {
       li.className = 'wcard';
       li.setAttribute('data-practice', '');
       li.dataset.zh = target;
+      li.dataset.key = 'w:' + w[0];
       li.dataset.accept = JSON.stringify(w[3] || []);
       li.dataset.extra = '0';
       li.innerHTML =
@@ -4032,6 +4228,7 @@ var qrcode = function() {
     }
   }
   function stopAll() {
+    if (RP.active && !rpGuard) rpAbort();
     run++;
     if (synth) { try { synth.cancel(); } catch (e) {} }
     stopVoice();
@@ -4367,6 +4564,7 @@ var qrcode = function() {
       });
       if (r.score < 1) renderHeard(heard, r, card);
       else heard.textContent = 'J\'ai compris : « ' + r.heard + ' »';
+      onPracticeResult(card, r.score);
       return;
     }
 
@@ -4390,6 +4588,7 @@ var qrcode = function() {
       v.textContent = 'Voix détectée, mais pas comprise. Réessaie plus lentement, en détachant bien les sons.';
     }
     if (offerRetry) card.querySelector('.retry').hidden = false;
+    onPracticeResult(card, null);
   }
 
   function finish(state) {
@@ -4901,7 +5100,7 @@ var qrcode = function() {
   }
   // Called whenever the panel being read changes: follows the place (café, market, street, evening)
   function ambienceSync(place) {
-    if (!ambOn) return;
+    if (!ambOn || RP.active) return;
     if (place) {
       clearTimeout(ambStopTimer);
       amb.start(place);
@@ -4968,6 +5167,637 @@ var qrcode = function() {
   }
   if (window.MutationObserver) {
     new MutationObserver(syncAnim).observe(animRoot, { attributes: true, attributeFilter: ['class'], subtree: true });
+  }
+
+  /* ---------- Items, progress and spaced review ---------- */
+  var ITEMS = [], ITEM_BY_KEY = {};
+  function addItem(it) { if (!ITEM_BY_KEY[it.key]) { ITEM_BY_KEY[it.key] = it; ITEMS.push(it); } return ITEM_BY_KEY[it.key]; }
+  WORD_GROUPS.forEach(function (g) {
+    g.words.forEach(function (w) {
+      addItem({ key: 'w:' + w[0], kind: 'word', zh: w[0].replace('…', ''), show: w[0], py: w[1], fr: w[2], accept: w[3] || [], extra: 0, group: g.title });
+    });
+  });
+  EPISODES.forEach(function (ep) {
+    ep.panels.forEach(function (p) {
+      p.lines.forEach(function (l) {
+        addItem({ key: 'l:' + l[1], kind: 'line', zh: l[1].replace(/[A-Za-z]+/g, ''), show: l[1], py: l[2], fr: l[3], accept: [], extra: /[A-Za-z]/.test(l[1]) ? 3 : 0, group: ep.fr, who: l[0] });
+      });
+    });
+  });
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function esc(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  var Progress = (function () {
+    var KEY = 'bd-chinois-progress', data = { items: {}, days: [] };
+    try { var raw = localStorage.getItem(KEY); if (raw) data = JSON.parse(raw) || data; } catch (e) {}
+    if (!data.items) data.items = {};
+    if (!data.days) data.days = [];
+    var DAY = 86400000, INTERVALS = [0, 1, 3, 7, 14, 30];
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+    function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    function markDay() {
+      var t = ymd(new Date());
+      if (data.days.indexOf(t) < 0) { data.days.push(t); data.days = data.days.slice(-120); }
+    }
+    function entry(key) {
+      return data.items[key] || (data.items[key] = { best: 0, last: 0, tries: 0, box: 0, due: 0, ok: 0, ko: 0 });
+    }
+    return {
+      stars: function (score) { return score >= 1 ? 3 : score >= 0.8 ? 2 : score >= 0.6 ? 1 : 0; },
+      get: function (key) { return data.items[key] || null; },
+      all: function () { return data.items; },
+      record: function (key, score) {
+        var it = entry(key);
+        it.tries++; it.last = score; if (score > it.best) it.best = score;
+        it.box = score >= 0.8 ? Math.min(it.box + 1, INTERVALS.length - 1) : 0;
+        it.due = Date.now() + INTERVALS[it.box] * DAY;
+        markDay(); save();
+      },
+      recordQuiz: function (key, ok) {
+        var it = entry(key);
+        if (ok) it.ok++; else { it.ko++; it.box = 0; it.due = Date.now(); }
+        markDay(); save();
+      },
+      isWeak: function (p) { return !!p && ((p.tries > 0 && p.best < 0.8) || p.ko > p.ok); },
+      isDue: function (p) { return !!p && (p.tries > 0 || p.ko > 0) && p.due <= Date.now(); },
+      streak: function () {
+        var set = {}, n = 0, d = new Date();
+        data.days.forEach(function (x) { set[x] = 1; });
+        if (!set[ymd(d)]) d = new Date(Date.now() - DAY);
+        while (set[ymd(d)]) { n++; d = new Date(d.getTime() - DAY); }
+        return n;
+      },
+      reset: function () { data = { items: {}, days: [] }; save(); }
+    };
+  })();
+
+  function starText(score) { var n = Progress.stars(score); return '★★★'.slice(0, n) + '☆☆☆'.slice(0, 3 - n); }
+  function paintStars(card) {
+    var el = card.querySelector('.stars');
+    if (!el) return;
+    var p = Progress.get(card.dataset.key);
+    if (!p || !p.tries) { el.textContent = ''; el.removeAttribute('title'); el.removeAttribute('aria-label'); return; }
+    el.textContent = starText(p.best);
+    el.title = 'Meilleur score : ' + Math.round(p.best * 100) + ' % (' + p.tries + (p.tries > 1 ? ' essais)' : ' essai)');
+    el.setAttribute('role', 'img');
+    el.setAttribute('aria-label', 'Meilleur score : ' + Math.round(p.best * 100) + ' pour cent, ' + Progress.stars(p.best) + ' étoiles sur 3');
+  }
+  function paintAllStars() { document.querySelectorAll('[data-practice][data-key]').forEach(paintStars); }
+  function cardsForKey(key) {
+    var out = [], all = document.querySelectorAll('[data-practice][data-key]');
+    for (var i = 0; i < all.length; i++) if (all[i].dataset.key === key) out.push(all[i]);
+    return out;
+  }
+  function scrollToCard(key) {
+    var list = cardsForKey(key).filter(function (c) { return !c.classList.contains('rv-card'); });
+    if (!list.length) return;
+    var c = list[0];
+    c.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    c.classList.add('flash');
+    setTimeout(function () { c.classList.remove('flash'); }, 1800);
+  }
+
+  // ----- progress panel -----
+  var progSum = document.getElementById('progsum');
+  var progEps = document.getElementById('progeps');
+  var progWeak = document.getElementById('progweak');
+  var progTimer = null;
+  function renderProgress() {
+    progTimer = null;
+    if (!progSum) return;
+    var tried = 0, three = 0, weak = [], due = 0;
+    ITEMS.forEach(function (it) {
+      var p = Progress.get(it.key);
+      if (p && p.tries > 0) { tried++; if (p.best >= 1) three++; }
+      if (Progress.isWeak(p)) weak.push(it);
+      if (Progress.isDue(p)) due++;
+    });
+    var streak = Progress.streak();
+    progSum.innerHTML =
+      '<div class="stat"><b>' + tried + '</b><span>sur ' + ITEMS.length + ' phrases et mots essayés</span></div>' +
+      '<div class="stat"><b>' + three + '</b><span>réussis à 100 % ★★★</span></div>' +
+      '<div class="stat"><b>' + weak.length + '</b><span>à revoir</span></div>' +
+      '<div class="stat"><b>' + (streak ? '🔥 ' + streak : '0') + '</b><span>' + (streak > 1 ? 'jours de suite' : 'jour de suite') + '</span></div>';
+    var rows = '';
+    EPISODES.forEach(function (ep, ei) {
+      var seen = {}, n = 0, sum = 0;
+      ep.panels.forEach(function (p) { p.lines.forEach(function (l) {
+        var k = 'l:' + l[1]; if (seen[k]) return; seen[k] = 1; n++;
+        var pr = Progress.get(k); if (pr && pr.tries) sum += Progress.stars(pr.best);
+      }); });
+      var pc = n ? Math.round(100 * sum / (3 * n)) : 0;
+      rows += '<div class="bar-row"><span class="bar-label">' + (ei + 1) + '. ' + esc(ep.fr) + '</span><span class="bar" role="img" aria-label="' + pc + ' pour cent"><i style="width:' + pc + '%"></i></span><span class="bar-pc">' + pc + ' %</span></div>';
+    });
+    progEps.innerHTML = rows;
+    progWeak.textContent = '';
+    if (!weak.length) {
+      progWeak.innerHTML = '<p class="muted">' + (tried ? 'Rien à revoir pour l\'instant, bravo !' : 'Fais quelques exercices 🎤 : les phrases à retravailler apparaîtront ici.') + '</p>';
+    } else {
+      weak.sort(function (a, b) { return (Progress.get(a.key).best) - (Progress.get(b.key).best); }).slice(0, 16).forEach(function (it) {
+        var p = Progress.get(it.key), b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip'; b.dataset.key = it.key;
+        b.innerHTML = '<span lang="zh-CN">' + esc(it.zh) + '</span> <small>' + starText(p.best) + '</small>';
+        b.title = it.fr;
+        progWeak.appendChild(b);
+      });
+    }
+    var rvBtn = document.getElementById('rvstart');
+    if (rvBtn) rvBtn.textContent = '▶ Réviser (' + Math.min(10, ITEMS.length) + ')' + (due ? ' · ' + due + ' à réviser' : '');
+  }
+  function scheduleProgress() { if (!progTimer) progTimer = setTimeout(renderProgress, 120); }
+
+  // called by the practice engine every time a pronunciation attempt ends
+  function onPracticeResult(card, score) {
+    var key = card.dataset.key;
+    if (score !== null && key) {
+      Progress.record(key, score);
+      cardsForKey(key).forEach(paintStars);
+      scheduleProgress();
+    }
+    if (RP.active && RP.card === card) rpResult(score);
+    if (RV.active && RV.card === card) rvResult(score);
+  }
+
+  // ----- review session -----
+  var rvBox = document.getElementById('rvbox');
+  function pickReview(n) {
+    var due = [], weak = [], fresh = [];
+    ITEMS.forEach(function (it) {
+      var p = Progress.get(it.key);
+      if (!p) fresh.push(it);
+      else if (Progress.isDue(p)) due.push(it);
+      else if (Progress.isWeak(p)) weak.push(it);
+    });
+    var pool = shuffle(due).concat(shuffle(weak));
+    if (pool.length < n) pool = pool.concat(shuffle(fresh));
+    if (pool.length < n) { // everything is learnt: revise random items
+      var rest = ITEMS.filter(function (it) { return pool.indexOf(it) < 0; });
+      pool = pool.concat(shuffle(rest));
+    }
+    return pool.slice(0, n);
+  }
+  function makeCard(it) {
+    var c = document.createElement('div');
+    c.className = 'wcard rv-card rv-covered';
+    c.setAttribute('data-practice', '');
+    c.dataset.key = it.key; c.dataset.zh = it.zh; c.dataset.accept = JSON.stringify(it.accept || []); c.dataset.extra = String(it.extra || 0);
+    c.innerHTML =
+      '<button type="button" class="word" data-zh="' + esc(it.show.replace('…', '')) + '"' + (it.who ? ' data-who="' + it.who + '"' : '') + ' aria-label="Écouter">' +
+        '<span class="fr rv-fr">' + esc(it.fr) + '</span><span class="hz" lang="zh-CN">' + esc(it.show) + '</span><span class="py">' + esc(it.py) + '</span></button>' +
+      practiceHtml();
+    paintStars(c);
+    return c;
+  }
+  function rvStart(list) {
+    if (!list || !list.length || !rvBox) return;
+    stopAll(); ambHardStop();
+    RV.active = true; RV.items = list; RV.i = 0; RV.scores = []; RV.card = null;
+    rvShow();
+  }
+  function rvShow() {
+    if (RV.i >= RV.items.length) { rvFinish(); return; }
+    var it = RV.items[RV.i], card = makeCard(it);
+    RV.card = card;
+    rvBox.hidden = false; rvBox.textContent = '';
+    var head = document.createElement('div'); head.className = 'rv-head';
+    head.innerHTML = '<b>Révision ' + (RV.i + 1) + ' / ' + RV.items.length + '</b> <span class="muted">Dis la phrase en chinois, d\'après sa traduction.</span>';
+    var ctl = document.createElement('div'); ctl.className = 'rv-ctl';
+    ctl.innerHTML = '<button type="button" class="tool-btn" id="rvhelp">👁 Voir l\'aide</button>' +
+      (SR ? '' : '<button type="button" class="tool-btn" id="rvknew">✔ Je savais</button><button type="button" class="tool-btn" id="rvnot">✗ À revoir</button>') +
+      '<button type="button" class="playall" id="rvnext" hidden>Suivant →</button><button type="button" class="tool-btn" id="rvquit">Terminer</button>';
+    rvBox.appendChild(head); rvBox.appendChild(card); rvBox.appendChild(ctl);
+    rvBox.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function rvResult(score) {
+    if (!RV.card) return;
+    RV.card.classList.remove('rv-covered');
+    if (score !== null) RV.scores.push(score);
+    var nx = document.getElementById('rvnext');
+    if (nx) nx.hidden = false;
+  }
+  function rvFinish() {
+    RV.active = false; RV.card = null;
+    var n = RV.scores.length, avg = n ? RV.scores.reduce(function (a, b) { return a + b; }, 0) / n : 0;
+    rvBox.innerHTML = '<div class="rv-head"><b>Révision terminée !</b></div><p>' + n + ' phrase' + (n > 1 ? 's' : '') + ' notée' + (n > 1 ? 's' : '') + (n ? ', moyenne ' + Math.round(avg * 100) + ' %.' : '.') + ' ' + (avg >= 0.8 ? 'Très bien !' : 'Continue, ça progresse à chaque séance.') + '</p>' +
+      '<div class="rv-ctl"><button type="button" class="playall" id="rvagain">↻ Une autre révision</button></div>';
+    renderProgress();
+  }
+  function rvQuit() { RV.active = false; RV.card = null; stopPractice(); if (rvBox) { rvBox.hidden = true; rvBox.textContent = ''; } renderProgress(); }
+
+  /* ---------- Role-play: you play one character, the page plays the others ---------- */
+  var rpEp = document.getElementById('rpep');
+  var rpRole = document.getElementById('rprole');
+  var rpHint = document.getElementById('rphint');
+  var rpOut = document.getElementById('rpout');
+  var rpBar = document.getElementById('rpbar');
+  var rpMsg = document.getElementById('rpmsg');
+  var rpBtn = {
+    retry: document.getElementById('rpretry'), model: document.getElementById('rpmodel'),
+    skip: document.getElementById('rpskip'), done: document.getElementById('rpdone'), quit: document.getElementById('rpquit')
+  };
+  if (rpEp) {
+    EPISODES.forEach(function (ep, i) {
+      var o = document.createElement('option');
+      o.value = String(i); o.textContent = (i + 1) + '. ' + ep.fr;
+      rpEp.appendChild(o);
+    });
+  }
+  RP.items = []; RP.i = 0; RP.card = null; RP.token = 0; RP.attempts = 0; RP.scores = []; RP.skipped = 0; RP.selfAssessed = false;
+
+  function rpMine(who) { return rpRole.value === 'denis' ? who === 'denis' : who !== 'denis'; }
+  function rpShow(msg, which) {
+    rpMsg.textContent = msg;
+    ['retry', 'model', 'skip', 'done'].forEach(function (k) { rpBtn[k].hidden = which.indexOf(k) < 0; });
+  }
+  function rpCleanup() {
+    RP.active = false; RP.card = null; RP.token++;
+    document.body.classList.remove('rp-on', 'rp-hint-full', 'rp-hint-py', 'rp-hint-fr');
+    document.querySelectorAll('.rp-mine').forEach(function (n) { n.classList.remove('rp-mine'); });
+    document.querySelectorAll('.bubble.playing').forEach(function (n) { n.classList.remove('playing'); });
+    rpBar.hidden = true;
+  }
+  function rpAbort() {
+    var wasActive = RP.active;
+    rpCleanup();
+    stopPractice();
+    if (synth) { try { synth.cancel(); } catch (e) {} }
+    if (wasActive) statusEl.textContent = 'Jeu de rôle arrêté.';
+  }
+  function rpStart() {
+    stopAll();
+    var ei = parseInt(rpEp.value, 10);
+    var items = Array.prototype.slice.call(document.querySelectorAll('#ep-' + (ei + 1) + ' .line'));
+    if (!items.length) return;
+    RP.items = items; RP.i = 0; RP.scores = []; RP.skipped = 0; RP.attempts = 0; RP.selfAssessed = false; RP.active = true;
+    ambHardStop();
+    document.body.classList.add('rp-on', 'rp-hint-' + rpHint.value);
+    items.forEach(function (el) { el.classList.toggle('rp-mine', rpMine(el.querySelector('.bubble').dataset.who)); });
+    rpOut.hidden = true; rpOut.textContent = '';
+    rpBar.hidden = false;
+    rpNext();
+  }
+  function rpScroll(el) {
+    if (document.body.classList.contains('no-scroll')) return;
+    el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function rpNext() {
+    if (!RP.active) return;
+    document.querySelectorAll('.bubble.playing').forEach(function (n) { n.classList.remove('playing'); });
+    if (RP.i >= RP.items.length) { rpFinish(); return; }
+    var el = RP.items[RP.i], b = el.querySelector('.bubble');
+    RP.attempts = 0; RP.card = null;
+    rpScroll(el);
+    if (rpMine(b.dataset.who)) rpUserTurn(el, b); else rpSpeak(b);
+  }
+  function rpSpeak(b) {
+    var my = ++RP.token, who = b.dataset.who;
+    rpShow('🔊 ' + SPK[who].name + ' parle…', []);
+    b.classList.add('playing', 'reveal');
+    speak(b.dataset.zh, function () {
+      if (!RP.active || my !== RP.token) return;
+      b.classList.remove('playing');
+      RP.i++;
+      setTimeout(function () { if (RP.active && my === RP.token) rpNext(); }, 350);
+    }, who);
+  }
+  function rpUserTurn(el, b) {
+    RP.card = el;
+    rpListen();
+  }
+  function rpListen() {
+    if (!RP.active || !RP.card) return;
+    var el = RP.card, b = el.querySelector('.bubble');
+    RP.token++;
+    if (!SR && !canRecord) {
+      b.classList.add('playing');
+      rpShow('À toi ! Dis la réplique à voix haute, puis touche « J\'ai dit la phrase ». (Ce navigateur ne peut pas écouter le micro.)', ['model', 'skip', 'done']);
+      return;
+    }
+    rpShow('🎤 À toi ! Dis la réplique de ' + SPK[b.dataset.who].name + '.', ['skip']);
+    rpGuard++;
+    try { startPractice(el); } finally { rpGuard--; }
+    b.classList.add('playing', 'reveal');
+  }
+  function rpResult(score) {
+    if (!RP.active || !RP.card) return;
+    var el = RP.card, b = el.querySelector('.bubble');
+    RP.attempts++;
+    if (score === null) {
+      rpShow('Je n\'ai pas pu t\'écouter. Réessaie, ou passe à la suite.', ['retry', 'model', 'skip']);
+      return;
+    }
+    var pc = Math.round(score * 100);
+    if (score >= 0.6) {
+      RP.scores.push(score);
+      b.classList.remove('playing');
+      var my = ++RP.token;
+      rpShow(score >= 1 ? '🌟 Parfait !' : '👍 Bien joué (' + pc + ' %).', []);
+      setTimeout(function () { if (RP.active && my === RP.token) { RP.i++; rpNext(); } }, 1500);
+    } else {
+      rpShow('Pas encore (' + pc + ' %). ' + (RP.attempts > 1 ? 'Écoute le modèle, puis réessaie.' : 'Réessaie.'), ['retry', 'model', 'skip']);
+    }
+  }
+  function rpFinish() {
+    var n = RP.scores.length, avg = n ? RP.scores.reduce(function (a, b) { return a + b; }, 0) / n : 0;
+    var role = rpRole.value === 'denis' ? 'Denis' : 'l\'autre personnage';
+    rpCleanup();
+    rpOut.hidden = false;
+    rpOut.innerHTML = '<h3 class="group-title">Scène terminée !</h3><p>Tu as joué ' + role + ' : ' + n + ' réplique' + (n > 1 ? 's' : '') + ' réussie' + (n > 1 ? 's' : '') + (RP.skipped ? ', ' + RP.skipped + ' passée' + (RP.skipped > 1 ? 's' : '') : '') + (RP.selfAssessed ? ' (réponses auto-évaluées).' : (n ? ', score moyen ' + Math.round(avg * 100) + ' %.' : '.')) + ' ' + (avg >= 0.8 ? 'Excellent !' : 'Rejoue la scène pour t\'améliorer.') + '</p><div class="rv-ctl"><button type="button" class="playall" id="rpagain">↻ Rejouer la scène</button><a class="tool-btn linkbtn" href="#progres">📈 Voir mes progrès</a></div>';
+    rpOut.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    renderProgress();
+  }
+  function rpSkipLine() {
+    if (!RP.active) return;
+    RP.skipped++; RP.i++;
+    stopPractice();
+    document.querySelectorAll('.bubble.playing').forEach(function (n) { n.classList.remove('playing'); });
+    RP.token++;
+    rpNext();
+  }
+
+  /* ---------- Quiz ---------- */
+  var qzBox = document.getElementById('qzbox');
+  var qzMode = document.getElementById('qzmode');
+  var qzPool = document.getElementById('qzpool');
+  var QZ = { active: false, qs: [], i: 0, score: 0, wrong: [], answered: false };
+  function qzText(it, type) { return type === 'read' ? it.py : type === 'mean' ? it.show : it.fr; }
+  function qzBuild(mode, pool, n) {
+    var items = ITEMS.filter(function (it) { return pool === 'all' || it.kind === pool; });
+    var types = mode === 'mix' ? ['listen', 'read', 'mean'] : [mode];
+    var picked = shuffle(items).slice(0, n);
+    return picked.map(function (it, k) {
+      var type = types[(mode === 'mix' ? Math.floor(Math.random() * 3) : 0)];
+      var answer = qzText(it, type), seen = {};
+      seen[answer] = 1;
+      var same = shuffle(items.filter(function (o) { return o !== it && o.kind === it.kind; }));
+      var rest = shuffle(items.filter(function (o) { return o !== it && o.kind !== it.kind; }));
+      var wrong = [];
+      same.concat(rest).forEach(function (o) {
+        var t = qzText(o, type);
+        if (wrong.length < 3 && !seen[t]) { seen[t] = 1; wrong.push(t); }
+      });
+      return { it: it, type: type, answer: answer, options: shuffle([answer].concat(wrong)) };
+    });
+  }
+  function qzStart() {
+    stopAll(); ambHardStop();
+    var n = Math.min(10, ITEMS.length);
+    QZ.qs = qzBuild(qzMode.value, qzPool.value, n); QZ.i = 0; QZ.score = 0; QZ.wrong = []; QZ.active = true;
+    qzShow();
+  }
+  function qzVoice(it) { return it.who || 'lin'; }
+  function qzSay(it) { stopAll(); speak(it.show.replace('…', ''), null, qzVoice(it)); }
+  function qzShow() {
+    if (QZ.i >= QZ.qs.length) { qzFinish(); return; }
+    var q = QZ.qs[QZ.i];
+    QZ.answered = false;
+    var prompt = q.type === 'listen'
+      ? '<button type="button" class="playall" id="qzhear">🔊 Écouter</button> <span class="qz-q">Que veut dire cette phrase ?</span>'
+      : q.type === 'read'
+        ? '<div class="qz-big" lang="zh-CN">' + esc(q.it.show) + '</div><span class="qz-q">Quel est le bon pinyin ? <button type="button" class="tool-btn" id="qzhear">🔊</button></span>'
+        : '<div class="qz-big fr">' + esc(q.it.fr) + '</div><span class="qz-q">Quels sont les bons caractères ?</span>';
+    qzBox.hidden = false;
+    qzBox.innerHTML = '<div class="qz-head"><b>Question ' + (QZ.i + 1) + ' / ' + QZ.qs.length + '</b><span class="muted"> · score ' + QZ.score + '</span></div>' +
+      '<div class="qz-prompt">' + prompt + '</div>' +
+      '<div class="qz-opts">' + q.options.map(function (o, k) {
+        return '<button type="button" class="qz-opt" data-i="' + k + '"><span class="qz-n">' + (k + 1) + '</span><span' + (q.type === 'mean' ? ' lang="zh-CN"' : '') + '>' + esc(o) + '</span></button>';
+      }).join('') + '</div><div class="qz-fb" aria-live="polite"></div><div class="rv-ctl"><button type="button" class="playall" id="qznext" hidden>Suivant →</button><button type="button" class="tool-btn" id="qzquit">Arrêter le quiz</button></div>';
+    qzBox.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    if (q.type === 'listen') qzSay(q.it);
+  }
+  function qzAnswer(k) {
+    if (!QZ.active || QZ.answered) return;
+    var q = QZ.qs[QZ.i], chosen = q.options[k], ok = chosen === q.answer;
+    QZ.answered = true;
+    if (ok) QZ.score++; else QZ.wrong.push(q.it);
+    Progress.recordQuiz(q.it.key, ok);
+    scheduleProgress();
+    var btns = qzBox.querySelectorAll('.qz-opt');
+    btns.forEach(function (b, i) {
+      b.disabled = true;
+      if (q.options[i] === q.answer) { b.classList.add('good'); b.insertAdjacentText('beforeend', ' ✓'); }
+      else if (i === k) { b.classList.add('bad'); b.insertAdjacentText('beforeend', ' ✗'); }
+    });
+    qzBox.querySelector('.qz-fb').innerHTML = (ok ? '<b class="fb-ok">Bravo !</b> ' : '<b class="fb-ko">Pas tout à fait.</b> ') +
+      '<span lang="zh-CN">' + esc(q.it.show) + '</span> · <i>' + esc(q.it.py) + '</i> · ' + esc(q.it.fr);
+    var nx = document.getElementById('qznext');
+    nx.hidden = false; nx.textContent = QZ.i + 1 >= QZ.qs.length ? 'Voir mon score →' : 'Suivant →';
+    nx.focus({ preventScroll: true });
+  }
+  function qzFinish() {
+    QZ.active = false;
+    var total = QZ.qs.length, pc = total ? Math.round(100 * QZ.score / total) : 0;
+    var list = QZ.wrong.map(function (it) { return '<li><span lang="zh-CN">' + esc(it.show) + '</span> · <i>' + esc(it.py) + '</i> · ' + esc(it.fr) + '</li>'; }).join('');
+    qzBox.innerHTML = '<div class="qz-head"><b>Quiz terminé : ' + QZ.score + ' / ' + total + '</b> (' + pc + ' %)</div><p>' + (pc >= 80 ? 'Très bien !' : pc >= 50 ? 'Pas mal, continue !' : 'Réécoute les épisodes et réessaie.') + '</p>' +
+      (list ? '<p class="muted">À revoir (ajouté à tes révisions) :</p><ul class="qz-wrong">' + list + '</ul>' : '<p>🌟 Aucune erreur !</p>') +
+      '<div class="rv-ctl"><button type="button" class="playall" id="qzagain">↻ Rejouer</button>' + (QZ.wrong.length ? '<button type="button" class="tool-btn" id="qzreview">Réviser mes erreurs</button>' : '') + '</div>';
+    renderProgress();
+  }
+  function qzQuit() { QZ.active = false; if (qzBox) { qzBox.hidden = true; qzBox.textContent = ''; } }
+
+  /* ---------- Wiring of the activities ---------- */
+  var rpStartBtn = document.getElementById('rpstart');
+  if (rpStartBtn) rpStartBtn.addEventListener('click', rpStart);
+  if (rpBtn.retry) rpBtn.retry.addEventListener('click', function () { if (RP.active && RP.card) { stopPractice(); rpListen(); } });
+  if (rpBtn.model) rpBtn.model.addEventListener('click', function () {
+    if (!RP.active || !RP.card) return;
+    var b = RP.card.querySelector('.bubble');
+    stopPractice();
+    speak(b.dataset.zh, null, b.dataset.who);
+  });
+  if (rpBtn.skip) rpBtn.skip.addEventListener('click', rpSkipLine);
+  if (rpBtn.done) rpBtn.done.addEventListener('click', function () {
+    if (!RP.active) return;
+    RP.scores.push(1); RP.selfAssessed = true; RP.i++;
+    RP.token++;
+    rpNext();
+  });
+  if (rpBtn.quit) rpBtn.quit.addEventListener('click', rpAbort);
+
+  var rvStartBtn = document.getElementById('rvstart');
+  if (rvStartBtn) rvStartBtn.addEventListener('click', function () { rvStart(pickReview(Math.min(10, ITEMS.length))); });
+  var rvResetBtn = document.getElementById('rvreset');
+  if (rvResetBtn) rvResetBtn.addEventListener('click', function () {
+    var ok = true;
+    try { ok = window.confirm('Effacer tous tes scores et ton historique de révision ?'); } catch (e) {}
+    if (!ok) return;
+    Progress.reset(); paintAllStars(); renderProgress();
+    statusEl.textContent = 'Progression effacée.';
+  });
+  var qzStartBtn = document.getElementById('qzstart');
+  if (qzStartBtn) qzStartBtn.addEventListener('click', qzStart);
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t.closest) return;
+    var chip = t.closest('.chip');
+    if (chip && chip.dataset.key) { scrollToCard(chip.dataset.key); return; }
+    var opt = t.closest('.qz-opt');
+    if (opt) { qzAnswer(parseInt(opt.dataset.i, 10)); return; }
+    var id = (t.closest('button, a') || {}).id;
+    switch (id) {
+      case 'rpagain': rpStart(); break;
+      case 'rvagain': rvStart(pickReview(Math.min(10, ITEMS.length))); break;
+      case 'rvhelp': if (RV.card) RV.card.classList.remove('rv-covered'); break;
+      case 'rvnext': RV.i++; stopPractice(); rvShow(); break;
+      case 'rvquit': rvQuit(); break;
+      case 'rvknew': case 'rvnot':
+        if (RV.card) { var sc = id === 'rvknew' ? 1 : 0.4; Progress.record(RV.card.dataset.key, sc); paintStars(RV.card); scheduleProgress(); RV.card.classList.remove('rv-covered'); RV.scores.push(sc); document.getElementById('rvnext').hidden = false; }
+        break;
+      case 'qzhear': if (QZ.active) qzSay(QZ.qs[QZ.i].it); break;
+      case 'qznext': QZ.i++; qzShow(); break;
+      case 'qzquit': qzQuit(); break;
+      case 'qzagain': qzStart(); break;
+      case 'qzreview': rvStart(QZ.wrong.slice(0, 10)); document.getElementById('progres').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); break;
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!QZ.active || !qzBox || qzBox.hidden) return;
+    if (/^[1-4]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      var tag = (document.activeElement || {}).tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      qzAnswer(parseInt(e.key, 10) - 1);
+    }
+  });
+
+  paintAllStars();
+  renderProgress();
+
+  /* ---------- Comfort: text size, theme, exports ---------- */
+  var fsSel = document.getElementById('fontsize');
+  var thSel = document.getElementById('themesel');
+  function applyFont(v) { document.documentElement.style.fontSize = v + '%'; }
+  function applyTheme(v) {
+    var r = document.documentElement;
+    if (v === 'light' || v === 'dark') r.setAttribute('data-theme', v); else r.removeAttribute('data-theme');
+  }
+  (function initComfort() {
+    var fs = '100', th = 'auto';
+    try { fs = localStorage.getItem('bd-chinois-fs') || '100'; th = localStorage.getItem('bd-chinois-theme') || 'auto'; } catch (e) {}
+    if (fsSel) { fsSel.value = fs; if (fsSel.value !== fs) fsSel.value = '100'; applyFont(fsSel.value); }
+    if (thSel) { thSel.value = th; if (thSel.value !== th) thSel.value = 'auto'; applyTheme(thSel.value); }
+    if (fsSel) fsSel.addEventListener('change', function () { applyFont(fsSel.value); try { localStorage.setItem('bd-chinois-fs', fsSel.value); } catch (e) {} });
+    if (thSel) thSel.addEventListener('change', function () { applyTheme(thSel.value); try { localStorage.setItem('bd-chinois-theme', thSel.value); } catch (e) {} });
+  })();
+
+  function vocabTSV() {
+    var rows = [['Hanzi', 'Pinyin', 'Français', 'Thème']], seen = {};
+    function add(h, p, f, g) { var k = h + '|' + f; if (seen[k]) return; seen[k] = 1; rows.push([h, p, f, g]); }
+    WORD_GROUPS.forEach(function (g) { g.words.forEach(function (w) { add(w[0], w[1], w[2], g.title); }); });
+    EPISODES.forEach(function (ep) { ep.panels.forEach(function (p) { p.lines.forEach(function (l) { add(l[1], l[2], l[3], 'Dialogue : ' + ep.fr); }); }); });
+    return rows.map(function (r) { return r.join('\t'); }).join('\n');
+  }
+  function copyText(text, okMsg) {
+    var fail = function () { statusEl.textContent = 'Copie impossible ici. Utilise plutôt le téléchargement.'; };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { statusEl.textContent = okMsg; }, fail);
+      else fail();
+    } catch (e) { fail(); }
+  }
+  var exportBtn = document.getElementById('exportbtn');
+  if (exportBtn) exportBtn.addEventListener('click', function () {
+    try {
+      var blob = new Blob(['\ufeff' + vocabTSV()], { type: 'text/tab-separated-values;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'vocabulaire-chinois.txt';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+      statusEl.textContent = 'Fichier « vocabulaire-chinois.txt » créé (importable dans Anki).';
+    } catch (e) { statusEl.textContent = 'Téléchargement impossible ici. Utilise « Copier ».'; }
+  });
+  var copyVocabBtn = document.getElementById('copyvocab');
+  if (copyVocabBtn) copyVocabBtn.addEventListener('click', function () { copyText(vocabTSV(), 'Vocabulaire copié (colonnes séparées par des tabulations).'); });
+  var saveProgBtn = document.getElementById('saveprog');
+  if (saveProgBtn) saveProgBtn.addEventListener('click', function () {
+    copyText(JSON.stringify({ items: Progress.all(), days: [] }), 'Progression copiée : colle-la sur un autre appareil avec « Importer ».');
+  });
+  var loadProgBtn = document.getElementById('loadprog');
+  if (loadProgBtn) loadProgBtn.addEventListener('click', function () {
+    var txt = null;
+    try { txt = window.prompt('Colle ici la progression copiée depuis un autre appareil :'); } catch (e) {}
+    if (!txt) return;
+    try {
+      var d = JSON.parse(txt), n = 0;
+      if (!d || typeof d.items !== 'object') throw new Error('format');
+      Object.keys(d.items).forEach(function (k) {
+        var src = d.items[k], cur = Progress.get(k);
+        if (!ITEM_BY_KEY[k] || !src || typeof src.best !== 'number') return;
+        if (!cur || (src.best > cur.best)) { Progress.record(k, src.best); n++; }
+      });
+      paintAllStars(); renderProgress();
+      statusEl.textContent = n + ' score' + (n > 1 ? 's importés.' : ' importé.');
+    } catch (e) { statusEl.textContent = 'Import impossible : ce texte n\'est pas une progression valide.'; }
+  });
+
+  /* ---------- Install on the home screen + offline ---------- */
+  var installBtn = document.getElementById('installbtn');
+  var offState = document.getElementById('offstate');
+  var installEvt = null;
+  function setOff(t) { if (offState) offState.textContent = t; }
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); installEvt = e;
+    if (installBtn) installBtn.hidden = false;
+  });
+  window.addEventListener('appinstalled', function () {
+    installEvt = null; if (installBtn) installBtn.hidden = true;
+    statusEl.textContent = 'Application installée.';
+  });
+  if (installBtn) installBtn.addEventListener('click', function () {
+    if (!installEvt) return;
+    installEvt.prompt();
+    installEvt.userChoice.then(function () { installEvt = null; installBtn.hidden = true; });
+  });
+  (function initOffline() {
+    if (isStandalone()) setOff('✔ Tu utilises déjà l\'application installée.');
+    var embedded = true;
+    try { embedded = window.self !== window.top; } catch (e) {}
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol) || embedded) {
+      if (!isStandalone()) setOff(embedded ? 'Indisponible dans cet aperçu : ouvre le site à sa propre adresse pour l\'installer.' : 'Indisponible ici : ouvre le site depuis une adresse https:// (ou localhost).');
+      return;
+    }
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'cached') setOff('✔ Disponible hors connexion.');
+    });
+    fetch('sw.js', { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('missing');
+      return navigator.serviceWorker.register('sw.js');
+    }).then(function () {
+      if (!isStandalone()) setOff('Préparation de la version hors connexion…');
+      return navigator.serviceWorker.ready;
+    }).then(function () {
+      if (navigator.serviceWorker.controller) setOff('✔ Disponible hors connexion.');
+    }).catch(function () {
+      setOff('Fichiers d\'installation absents : ajoute sw.js, manifest.webmanifest et les icônes à côté d\'index.html.');
+    });
+  })();
+
+  /* ---------- Back to top ---------- */
+  var toTop = document.getElementById('totop');
+  if (toTop) {
+    var topTicking = false;
+    var updateTop = function () {
+      topTicking = false;
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      var show = y > 600;
+      if (toTop.hidden === show) toTop.hidden = !show;
+    };
+    window.addEventListener('scroll', function () {
+      if (!topTicking) { topTicking = true; window.requestAnimationFrame(updateTop); }
+    }, { passive: true });
+    toTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      var h = document.getElementById('top');
+      if (h) h.focus({ preventScroll: true });
+    });
+    updateTop();
   }
 
   /* ---------- Collapsible settings + floating stop ---------- */
