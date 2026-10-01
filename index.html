@@ -1055,18 +1055,67 @@ h2 {
   var active = null;
   var voiceAudio = null;
 
+  var voiceSrc = null;
+  var playCtx = null;
+
   function stopVoice() {
     if (voiceAudio) { try { voiceAudio.pause(); } catch (e) {} voiceAudio = null; }
+    if (voiceSrc) { try { voiceSrc.onended = null; voiceSrc.stop(); } catch (e) {} voiceSrc = null; }
   }
-  function playVoice(card) {
-    if (!card.__voice) return;
-    stopVoice();
+  function playPlain(card) {
     try {
       voiceAudio = new Audio(card.__voice);
+      voiceAudio.volume = 1;
       var p = voiceAudio.play();
       if (p && p.catch) p.catch(function () { statusEl.textContent = 'Impossible de relire ton enregistrement ici.'; });
     } catch (e) {
       statusEl.textContent = 'Impossible de relire ton enregistrement ici.';
+    }
+  }
+  // Mic recordings are often much quieter than the synthetic voice (notably in Chrome), so the
+  // recording is amplified at playback, up to a level that cannot clip.
+  function boostFor(buf) {
+    var peak = 0, sum = 0, n = 0;
+    for (var c = 0; c < buf.numberOfChannels; c++) {
+      var d = buf.getChannelData(c);
+      for (var i = 0; i < d.length; i++) {
+        var v = Math.abs(d[i]);
+        if (v > peak) peak = v;
+        sum += v * v;
+      }
+      n += d.length;
+    }
+    var rms = Math.sqrt(sum / Math.max(1, n));
+    if (peak < 0.0005 || rms < 0.00005) return 1;
+    var g = Math.min(0.95 / peak, 0.15 / rms);
+    return Math.max(1, Math.min(12, g));
+  }
+  function playVoice(card) {
+    if (!card.__voice) return;
+    stopVoice();
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !card.__voiceBlob || !card.__voiceBlob.arrayBuffer) { playPlain(card); return; }
+    try {
+      if (!playCtx) playCtx = new AC();
+      if (playCtx.resume) playCtx.resume();
+      var start = function (buf) {
+        card.__voiceBuf = buf;
+        var src = playCtx.createBufferSource();
+        var gain = playCtx.createGain();
+        src.buffer = buf;
+        gain.gain.value = boostFor(buf);
+        src.connect(gain);
+        gain.connect(playCtx.destination);
+        voiceSrc = src;
+        src.onended = function () { if (voiceSrc === src) voiceSrc = null; };
+        src.start(0);
+      };
+      if (card.__voiceBuf) { start(card.__voiceBuf); return; }
+      card.__voiceBlob.arrayBuffer().then(function (ab) {
+        return new Promise(function (res, rej) { playCtx.decodeAudioData(ab, res, rej); });
+      }).then(start).catch(function () { playPlain(card); });
+    } catch (e) {
+      playPlain(card);
     }
   }
   function compare(card) {
@@ -1383,6 +1432,8 @@ h2 {
         var blob = new Blob(state.chunks, { type: mr.mimeType || 'audio/webm' });
         try {
           state.card.__voice = URL.createObjectURL(blob);
+          state.card.__voiceBlob = blob;
+          state.card.__voiceBuf = null;
           state.card.querySelectorAll('[data-act="mine"], [data-act="compare"]').forEach(function (b) { b.disabled = false; });
         } catch (e) {}
       };
@@ -1401,6 +1452,8 @@ h2 {
                   rec: null, started: false, speech: false, recTried: false, wantRec: wantRec };
     active = state;
     if (card.__voice) { try { URL.revokeObjectURL(card.__voice); } catch (e) {} card.__voice = null; }
+    card.__voiceBlob = null;
+    card.__voiceBuf = null;
     card.querySelectorAll('[data-act="mine"], [data-act="compare"]').forEach(function (b) { b.disabled = true; });
     setMic(card, true);
     listening(card, 'Je démarre le micro…');
