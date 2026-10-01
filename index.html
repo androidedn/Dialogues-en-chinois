@@ -337,6 +337,7 @@ h2 {
       <span class="speed-label">Voix de Xiao Lin</span>
       <select id="voice-lin" class="voice-select" aria-label="Voix de Xiao Lin"><option value="">Automatique</option></select>
     </div>
+    <p class="status" id="voicehint" hidden></p>
     <p class="status" id="status" role="status" aria-live="polite">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
   </div>
 
@@ -936,11 +937,22 @@ h2 {
     var shared = !v || !o || v.voiceURI === o.voiceURI;
     var pitch = 1;
     if (shared) pitch = who === 'lin' ? 1.15 : 0.7;
+    else if (who === 'denis' && !chosen.denis && v && !MALE_RE.test(v.name)) pitch = 0.7;
     return { voice: v, pitch: pitch };
   }
   function fillVoices() {
     if (!synth) return;
     var list = zhVoices();
+    var hint = document.getElementById('voicehint');
+    if (hint) {
+      var chromium = /Chrome|Chromium|CriOS|Edg\//.test(navigator.userAgent);
+      if (!chromium && list.length <= 3) {
+        hint.textContent = 'Safari ne propose que les voix préinstallées de macOS : les voix téléchargées n\'apparaissent que dans Chrome ou Edge. La voix de Denis est abaissée automatiquement si aucune voix masculine n\'est disponible.';
+        hint.hidden = false;
+      } else {
+        hint.hidden = true;
+      }
+    }
     ['denis', 'lin'].forEach(function (who) {
       var sel = voiceSels[who];
       if (!sel) return;
