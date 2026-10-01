@@ -1,6 +1,6 @@
 /* Service worker : permet d'installer la BD et de l'utiliser hors connexion.
    Pour publier une nouvelle version du site, change simplement le numéro ci-dessous. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'bd-chinois-' + VERSION;
 const PRECACHE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
