@@ -745,7 +745,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 39</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 40</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -761,6 +761,10 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       </div>
       <div class="diag-meter" aria-hidden="true"><i id="diagmeter"></i></div>
       <ul id="diaglog" aria-live="polite"></ul>
+      <h3 class="group-title">Journal du dernier exercice 🎤</h3>
+      <p class="muted">Fais un exercice de prononciation, puis reviens ici : chaque ligne indique ce que le navigateur a fait. Tu peux me recopier ces lignes.</p>
+      <ul id="praclog"></ul>
+      <button type="button" class="tool-btn" id="plogcopy">📋 Copier le journal</button>
     </section>
 
     <div id="episodes"></div>
@@ -898,7 +902,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 39.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 40.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -5216,7 +5220,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       offerRetry = state.wantRec;
     } else if (!state.speech) {
       v.classList.add('low');
-      v.textContent = 'Micro activé, mais aucune voix détectée. Vérifie le micro choisi dans les réglages de ton appareil et rapproche-toi.';
+      v.textContent = 'Micro activé, mais aucune voix détectée. Vérifie le micro choisi dans les réglages de ton appareil et rapproche-toi. Si cela se répète, ouvre « Tester mon micro » dans les Réglages : le journal en bas du panneau montre ce qui s\'est passé.';
       offerRetry = state.wantRec;
     } else {
       v.classList.add('low');
@@ -5229,6 +5233,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   function finish(state) {
     if (state.finished || state.aborted) return;
     state.finished = true;
+    plog('fin de l\'exercice' + (state.error ? ' (erreur : ' + state.error + ')' : '') + ((state.alts && state.alts[0]) ? ' · compris : ' + state.alts[0] : ' · rien compris'));
     clearTimeout(state.timer);
     clearTimeout(state.watch);
     clearTimeout(state.silence);
@@ -5272,6 +5277,13 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     return out;
   }
 
+  var PLOG = [], plogT0 = Date.now();
+  function plog(msg) {
+    PLOG.push((Date.now() - plogT0) + ' ms · ' + msg);
+    if (PLOG.length > 60) PLOG.shift();
+    var ul = document.getElementById('praclog');
+    if (ul) { ul.textContent = ''; PLOG.slice(-30).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
+  }
   var openStreams = [];
   function stopStream(st) {
     try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
@@ -5323,7 +5335,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     card.__voiceBuf = null;
     card.querySelectorAll('[data-act="mine"], [data-act="compare"]').forEach(function (b) { b.disabled = true; });
     if (recOnly) setRecOnly(card, true); else setMic(card, true);
-    listening(card, recOnly ? 'Je t\'enregistre… parle, puis touche « Arrêter ».' : 'Je démarre le micro…');
+    listening(card, recOnly ? 'Je t\'enregistre… parle (jusqu\'à 20 secondes), puis touche « Arrêter ».' : 'Je démarre le micro…');
 
     // Start the recorder only once recognition owns the microphone, so the two never compete for it.
     function maybeRecord() {
@@ -5333,56 +5345,81 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     if (recOnly) {
       if (!canRecord) { state.error = 'unsupported'; finish(state); return; }
       maybeRecord();
-      state.timer = setTimeout(function () { finish(state); }, 9000);
+      state.timer = setTimeout(function () { finish(state); }, 20000);
       return;
     }
 
+    var t0 = Date.now();
+    state.restarts = 0;
+    plog('Exercice « ' + (card.dataset.key || '?') + ' » · enregistrement de la voix ' + (wantRec ? 'oui' : 'non'));
+    // One recognition session. It is restarted (up to 3 times in the first 9 s) if the engine gives up on its own
+    // before any word was recognised, which happens on phones and tablets when background noise ends it early.
+    var launch = function () {
+      var rec = new SR();
+      state.rec = rec;
+      rec.lang = 'zh-CN';
+      rec.interimResults = true;
+      rec.maxAlternatives = 5;
+      // Chrome ends recognition at the first short pause; keep it open and stop after a longer silence ourselves.
+      rec.continuous = IS_CHROMIUM;
+      var stopIn = function (ms) {
+        clearTimeout(state.silence);
+        state.silence = setTimeout(function () { state.userStop = true; plog('arrêt automatique (silence)'); try { rec.stop(); } catch (e) {} }, ms);
+      };
+      rec.onstart = function () { state.started = true; plog('écoute démarrée (essai ' + (state.restarts + 1) + ')'); liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); stopIn(9000); };
+      rec.onaudiostart = function () { state.started = true; plog('audio capté'); maybeRecord(); };
+      // a "speech start" can come from background noise or echo: it must not shorten the listening time
+      rec.onspeechstart = function () { state.speech = true; plog('son détecté'); liveMsg(state, 'Voix détectée…'); };
+      rec.onresult = function (ev) {
+        state.alts = collectAlts(ev.results);
+        state.speech = true;
+        plog('résultat : ' + (state.alts[0] || '(vide)'));
+        if (state.alts.length) liveMsg(state, 'J\'entends : « ' + state.alts[0] + ' »');
+        stopIn(2300);
+      };
+      rec.onerror = function (ev) { state.error = ev.error; plog('erreur : ' + ev.error); };
+      rec.onend = function () {
+        var elapsed = Date.now() - t0;
+        var hard = state.error && state.error !== 'no-speech' && state.error !== 'aborted';
+        plog('écoute terminée après ' + elapsed + ' ms');
+        if (!state.finished && !state.aborted && !state.userStop && !(state.alts && state.alts.length) && !hard && elapsed < 9000 && state.restarts < 3) {
+          state.restarts++; state.error = null;
+          plog('relance automatique n° ' + state.restarts);
+          setTimeout(function () {
+            if (state.finished || state.aborted) return;
+            try { launch(); } catch (e) { state.error = 'start'; finish(state); }
+          }, 200);
+          return;
+        }
+        finish(state);
+      };
+      rec.start();
+    };
     var begin = function () {
-    if (state.aborted || state.finished) return;
-    if (SR) {
-      try {
-        var rec = new SR();
-        rec.lang = 'zh-CN';
-        rec.interimResults = true;
-        rec.maxAlternatives = 5;
-        // Chrome ends recognition at the first short pause; keep it open and stop after a longer silence ourselves.
-        rec.continuous = IS_CHROMIUM;
-        var bump = function () {
-          clearTimeout(state.silence);
-          state.silence = setTimeout(function () { try { rec.stop(); } catch (e) {} }, 2200);
-        };
-        rec.onstart = function () { state.started = true; liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); };
-        rec.onaudiostart = function () { state.started = true; maybeRecord(); };
-        rec.onspeechstart = function () { state.speech = true; liveMsg(state, 'Voix détectée…'); bump(); };
-        rec.onresult = function (ev) {
-          state.alts = collectAlts(ev.results);
-          state.speech = true;
-          if (state.alts.length) liveMsg(state, 'J\'entends : « ' + state.alts[0] + ' »');
-          bump();
-        };
-        rec.onerror = function (ev) { state.error = ev.error; };
-        rec.onend = function () { finish(state); };
-        rec.start();
-        state.rec = rec;
-        state.timer = setTimeout(function () { try { rec.stop(); } catch (e) {} }, 15000);
-        state.watch = setTimeout(function () {
-          if (!state.started) {
-            liveMsg(state, 'Le micro ne démarre pas encore. Si le navigateur demande l\'autorisation, accepte-la. Sur Safari, vérifie aussi que la dictée est activée dans les réglages de ton Mac ou de ton iPhone.');
-          }
-        }, 3500);
-      } catch (e) {
-        state.error = 'start';
-        state.rec = null;
+      if (state.aborted || state.finished) return;
+      if (SR) {
+        try {
+          launch();
+          state.timer = setTimeout(function () { state.userStop = true; try { if (state.rec) state.rec.stop(); } catch (e) {} }, 15000);
+          state.watch = setTimeout(function () {
+            if (!state.started) {
+              liveMsg(state, 'Le micro ne démarre pas encore. Si le navigateur demande l\'autorisation, accepte-la. Sur Safari, vérifie aussi que la dictée est activée dans les réglages de ton Mac ou de ton iPhone.');
+            }
+          }, 3500);
+        } catch (e) {
+          state.error = 'start';
+          state.rec = null;
+          plog('impossible de démarrer l\'écoute : ' + (e && e.name));
+        }
       }
-    }
-    if (!state.rec) {
-      if (!canRecord) { state.error = 'unsupported'; finish(state); return; }
-      maybeRecord();
-      state.timer = setTimeout(function () { finish(state); }, 5000);
-    }
+      if (!state.rec) {
+        if (!canRecord) { state.error = 'unsupported'; finish(state); return; }
+        maybeRecord();
+        state.timer = setTimeout(function () { finish(state); }, 5000);
+      }
     };
     // on iPhone/iPad the audio system needs a moment to hand the microphone over after speech or sounds
-    if (isIOS()) setTimeout(begin, 350); else begin();
+    if (isIOS() || IS_ANDROID) setTimeout(begin, 500); else begin();
   }
 
   document.addEventListener('click', function (e) {
@@ -5405,7 +5442,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     if (mic) {
       var card = mic.closest('[data-practice]');
       if (active && active.card === card) {
-        if (active.rec) { try { active.rec.stop(); } catch (er) { finish(active); } }
+        if (active.rec) { active.userStop = true; try { active.rec.stop(); } catch (er) { finish(active); } }
         else finish(active);
       } else {
         startPractice(card);
@@ -5535,9 +5572,14 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var open = diagEl.hidden;
     diagEl.hidden = !open;
     diagBtn.setAttribute('aria-expanded', String(open));
-    if (open) { diagEnv(); diagEl.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); }
+    if (open) { plog('(journal affiché)'); diagEnv(); diagEl.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); }
   });
   document.getElementById('testmic').addEventListener('click', testMic);
+  document.getElementById('plogcopy').addEventListener('click', function () {
+    var text = navigator.userAgent + '\n' + PLOG.join('\n');
+    try { navigator.clipboard.writeText(text).then(function () { statusEl.textContent = 'Journal copié.'; }, function () { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }); }
+    catch (e) { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }
+  });
   document.getElementById('micreset').addEventListener('click', function () {
     stopAll(); stopPractice(); releaseStreams();
     try { amb.release(); } catch (e) {}
@@ -5810,7 +5852,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   }
   function ambHardStop() {
     clearTimeout(ambStopTimer);
-    if (isIOS()) amb.release(); else amb.stop(0.15);
+    if (isIOS() || IS_ANDROID) amb.release(); else amb.stop(0.15);
   }
   if (!amb.supported()) {
     ambBtn.hidden = true;
