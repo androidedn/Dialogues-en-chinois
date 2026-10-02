@@ -701,6 +701,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     <button class="toggle" data-key="scroll" aria-pressed="true" title="Fait défiler la page jusqu'à la phrase lue">Défilement auto</button>
     <button class="toggle" data-key="rec" aria-pressed="true" title="À désactiver si le micro ne capte rien">Enregistrer ma voix</button>
     <button class="tool-btn" id="diagbtn" aria-expanded="false" aria-controls="diag">Tester mon micro</button>
+    <button class="tool-btn" id="autorepair" aria-pressed="true" hidden title="Sur iPad et iPhone, recharge la page avant chaque nouvel exercice pour que le micro entende toujours (contourne un défaut du moteur vocal d'Apple)">♻ Réparer le micro automatiquement</button>
     <button class="tool-btn" id="micreset" title="Arrête toute écoute, libère le micro et le son, puis réessaie">♻ Réinitialiser le micro</button>
     <div class="speed" role="group" aria-label="Vitesse de lecture">
       <span class="speed-label">Vitesse</span>
@@ -745,7 +746,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 42</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 43</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -902,7 +903,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 42.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 43.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -5316,6 +5317,17 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var ul = document.getElementById('praclog');
     if (ul) { ul.textContent = ''; PLOG.slice(-30).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
   }
+  // On iPad the speech engine reliably hears only the first session after the page is loaded (see the journals).
+  // So, before a new exercise, the page reloads itself once and comes back to the same card.
+  var srSessions = 0;
+  var autoRepair = isIOS();
+  try { var arSaved = localStorage.getItem('bd-chinois-autorepair'); if (arSaved !== null) autoRepair = arSaved === '1'; } catch (e) {}
+  function reloadForMic(card) {
+    statusEl.textContent = 'Je réinitialise le micro de l\'iPad : la page se recharge, puis touche 🎤 de nouveau.';
+    plog('rechargement automatique de la page avant un nouvel exercice');
+    try { sessionStorage.setItem('bd-reopen', card.dataset.key || ''); sessionStorage.setItem('bd-hint', 'mic'); } catch (e) {}
+    setTimeout(function () { try { location.reload(); } catch (e) {} }, 250);
+  }
   var openStreams = [];
   function stopStream(st) {
     try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
@@ -5436,7 +5448,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       clearTimeout(state.stall);
       state.stall = setTimeout(function () {
         if (state.finished || state.aborted || state.userStop || state.speech || (state.alts && state.alts.length)) return;
-        if (state.stalls >= 2) { plog('toujours aucun son reçu : je ne réinitialise plus'); return; }
+        if (state.stalls >= 1) { plog('toujours aucun son reçu : je ne réinitialise plus'); return; }
         state.stalls++;
         plog('aucun son reçu après ' + (ms / 1000) + ' s : réinitialisation de l\'écoute (n° ' + state.stalls + ')');
         clearTimeout(state.silence);
@@ -5446,13 +5458,14 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
           if (state.finished || state.aborted) return;
           try { launch(); } catch (e) { state.error = 'start'; finish(state); }
         };
-        setTimeout(go, state.stalls === 1 ? 800 : 1800);
+        setTimeout(go, 800);
       }, ms);
     };
     var begin = function () {
       if (state.aborted || state.finished) return;
       if (SR) {
         try {
+          srSessions++;
           launch();
           state.timer = setTimeout(function () { state.userStop = true; plog('durée maximale atteinte'); stopRec(state); }, 15000);
           state.watch = setTimeout(function () {
@@ -5496,6 +5509,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var mic = e.target.closest('.mic-btn');
     if (mic) {
       var card = mic.closest('[data-practice]');
+      if (isIOS() && autoRepair && srSessions >= 1 && !(active && active.card === card) && !RP.active && !RV.active) { reloadForMic(card); return; }
       if (active && active.card === card) {
         if (active.rec) { active.userStop = true; stopRec(active); }
         else finish(active);
@@ -5639,6 +5653,17 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     try { navigator.clipboard.writeText(text).then(function () { statusEl.textContent = 'Journal copié.'; }, function () { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }); }
     catch (e) { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }
   });
+  var autoRepairBtn = document.getElementById('autorepair');
+  if (autoRepairBtn && isIOS()) {
+    autoRepairBtn.hidden = false;
+    autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
+    autoRepairBtn.addEventListener('click', function () {
+      autoRepair = !autoRepair;
+      autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
+      try { localStorage.setItem('bd-chinois-autorepair', autoRepair ? '1' : '0'); } catch (e) {}
+      statusEl.textContent = autoRepair ? 'Réparation automatique du micro activée : la page se recharge avant chaque nouvel exercice.' : 'Réparation automatique désactivée.';
+    });
+  }
   document.getElementById('micreset').addEventListener('click', function () {
     stopAll(); stopPractice(); releaseStreams(); releaseRecs();
     try { amb.release(); } catch (e) {}
@@ -7509,10 +7534,11 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   try {
     var reopenKey = sessionStorage.getItem('bd-reopen');
     if (reopenKey !== null) {
-      sessionStorage.removeItem('bd-reopen');
+      var reopenHint = sessionStorage.getItem('bd-hint');
+      sessionStorage.removeItem('bd-reopen'); sessionStorage.removeItem('bd-hint');
       setTimeout(function () {
         if (reopenKey) scrollToCard(reopenKey);
-        statusEl.textContent = 'Page rechargée : le micro est réinitialisé, tu peux réessayer l\'exercice 🎤.';
+        statusEl.textContent = reopenHint === 'mic' ? 'Micro réinitialisé : touche 🎤 sur la carte pour parler.' : 'Page rechargée : le micro est réinitialisé, tu peux réessayer l\'exercice 🎤.';
       }, 700);
     }
   } catch (e) {}
