@@ -701,6 +701,8 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     <button class="toggle" data-key="scroll" aria-pressed="true" title="Fait défiler la page jusqu'à la phrase lue">Défilement auto</button>
     <button class="toggle" data-key="rec" aria-pressed="true" title="À désactiver si le micro ne capte rien">Enregistrer ma voix</button>
     <button class="tool-btn" id="diagbtn" aria-expanded="false" aria-controls="diag">Tester mon micro</button>
+    <button class="tool-btn" id="audioprime" aria-pressed="true" hidden title="Sur iPad et iPhone, joue un silence très court juste avant d'écouter, pour réveiller le système audio (essai)">🔈 Amorcer l'audio avant l'écoute</button>
+    <button class="tool-btn" id="srreuse" aria-pressed="true" hidden title="Sur iPad et iPhone, garde le même moteur d'écoute d'un exercice à l'autre au lieu d'en créer un nouveau (essai pour éviter les silences)">🔁 Réutiliser le moteur d'écoute</button>
     <button class="tool-btn" id="autorepair" aria-pressed="true" hidden title="Sur iPad et iPhone, recharge la page avant chaque nouvel exercice pour que le micro entende toujours (contourne un défaut du moteur vocal d'Apple)">♻ Réparer le micro automatiquement</button>
     <button class="tool-btn" id="micreset" title="Arrête toute écoute, libère le micro et le son, puis réessaie">♻ Réinitialiser le micro</button>
     <div class="speed" role="group" aria-label="Vitesse de lecture">
@@ -746,7 +748,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 43</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 45</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -903,7 +905,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 43.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 45.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -5295,8 +5297,15 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
 
   // On iPad the microphone stays "taken" by the previous recognition object, so the next session hears nothing:
   // every object is tracked and explicitly aborted (and its handlers dropped) as soon as a session ends.
-  var srPool = [];
+  var srPool = [], srShared = null, srTok = 0;
+  var reuseSR = isIOS();
+  try { var rsSaved = localStorage.getItem('bd-chinois-srreuse'); if (rsSaved !== null) reuseSR = rsSaved === '1'; } catch (e) {}
   function releaseRecs() {
+    if (srShared) {
+      try { srShared.onstart = srShared.onaudiostart = srShared.onspeechstart = srShared.onresult = srShared.onerror = srShared.onend = null; } catch (e) {}
+      // an idle shared object is left alone: aborting it after it ended is what may poison the next session
+      if (srShared.__running) { try { srShared.abort(); } catch (e) {} }
+    }
     srPool.splice(0).forEach(function (r) {
       try { r.onstart = r.onaudiostart = r.onspeechstart = r.onresult = r.onerror = r.onend = null; } catch (e) {}
       try { r.abort(); } catch (e) {}
@@ -5311,17 +5320,46 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     }, 1500);
   }
   var PLOG = [], plogT0 = Date.now();
+  try {
+    var p0 = sessionStorage.getItem('bd-plog-t0');
+    if (p0) plogT0 = parseInt(p0, 10) || plogT0; else sessionStorage.setItem('bd-plog-t0', String(plogT0));
+    var pl = sessionStorage.getItem('bd-plog');
+    if (pl) PLOG = JSON.parse(pl) || [];
+  } catch (e) {}
   function plog(msg) {
     PLOG.push((Date.now() - plogT0) + ' ms · ' + msg);
-    if (PLOG.length > 60) PLOG.shift();
+    if (PLOG.length > 80) PLOG.shift();
+    try { sessionStorage.setItem('bd-plog', JSON.stringify(PLOG)); } catch (e) {}
     var ul = document.getElementById('praclog');
-    if (ul) { ul.textContent = ''; PLOG.slice(-30).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
+    if (ul) { ul.textContent = ''; PLOG.slice(-40).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
   }
+  plog('— page chargée (version n° 45) —');
   // On iPad the speech engine reliably hears only the first session after the page is loaded (see the journals).
   // So, before a new exercise, the page reloads itself once and comes back to the same card.
   var srSessions = 0;
-  var autoRepair = isIOS();
+  var autoRepair = false;
   try { var arSaved = localStorage.getItem('bd-chinois-autorepair'); if (arSaved !== null) autoRepair = arSaved === '1'; } catch (e) {}
+  // Plays a very short silence through the Web Audio API just before listening, to wake up the iPad audio session
+  // (a trick reported by developers; it is an experiment, so it can be switched off in the settings).
+  var primeOn = isIOS();
+  try { var prSaved = localStorage.getItem('bd-chinois-audioprime'); if (prSaved !== null) primeOn = prSaved === '1'; } catch (e) {}
+  function primeAudio() {
+    if (!(isIOS() && primeOn)) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var c = new AC();
+      if (c.resume) c.resume();
+      var buf = c.createBuffer(1, 3200, 16000);
+      var src = c.createBufferSource();
+      src.buffer = buf; src.connect(c.destination);
+      src.onended = function () { try { c.close(); } catch (e) {} };
+      src.start(0);
+      setTimeout(function () { try { c.close(); } catch (e) {} }, 800);
+      plog('amorçage audio : silence joué');
+    } catch (e) { plog('amorçage audio impossible (' + (e && e.name) + ')'); }
+  }
+  plog('réglages : moteur réutilisé ' + (reuseSR ? 'oui' : 'non') + ' · rechargement auto ' + (autoRepair ? 'oui' : 'non') + ' · amorçage audio ' + (primeOn ? 'oui' : 'non'));
   function reloadForMic(card) {
     statusEl.textContent = 'Je réinitialise le micro de l\'iPad : la page se recharge, puis touche 🎤 de nouveau.';
     plog('rechargement automatique de la page avant un nouvel exercice');
@@ -5371,6 +5409,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     ambHardStop();
     releaseStreams();
     releaseRecs();
+    if (!recOnly) primeAudio();
     var wantRec = recOnly || (canRecord && !document.body.classList.contains('no-rec'));
     var state = { card: card, alts: null, error: null, micError: null, chunks: [], finished: false,
                   rec: null, started: false, speech: false, recTried: false, wantRec: wantRec, recOnly: recOnly };
@@ -5401,8 +5440,21 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     // One recognition session. It is restarted (up to 3 times in the first 9 s) if the engine gives up on its own
     // before any word was recognised, which happens on phones and tablets when background noise ends it early.
     var launch = function () {
-      var rec = new SR();
-      srPool.push(rec);
+      var rec, reused = false;
+      if (reuseSR && srShared) { rec = srShared; reused = true; }
+      else {
+        rec = new SR();
+        if (reuseSR) {
+          srShared = rec;
+          try {
+            rec.addEventListener('start', function () { rec.__running = true; });
+            rec.addEventListener('end', function () { rec.__running = false; });
+          } catch (e) {}
+          plog('moteur d\'écoute créé (réutilisé ensuite)');
+        } else { srPool.push(rec); }
+      }
+      var tok = ++srTok;
+      var live = function (fn) { return function (ev) { if (tok !== srTok) return; fn(ev); }; };
       state.rec = rec;
       rec.lang = 'zh-CN';
       rec.interimResults = true;
@@ -5413,19 +5465,19 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
         clearTimeout(state.silence);
         state.silence = setTimeout(function () { state.userStop = true; plog('arrêt automatique (silence)'); stopRec(state); }, ms);
       };
-      rec.onstart = function () { state.started = true; plog('écoute démarrée (essai ' + (state.restarts + 1) + ')'); liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); stopIn(9000); armStall(4500); };
-      rec.onaudiostart = function () { state.started = true; plog('audio capté'); maybeRecord(); };
+      rec.onstart = live(function () { state.started = true; plog('écoute démarrée (essai ' + (state.restarts + 1) + ')'); liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); stopIn(9000); armStall(4500); });
+      rec.onaudiostart = live(function () { state.started = true; plog('audio capté'); maybeRecord(); });
       // a "speech start" can come from background noise or echo: it must not shorten the listening time
-      rec.onspeechstart = function () { state.speech = true; plog('son détecté'); liveMsg(state, 'Voix détectée…'); };
-      rec.onresult = function (ev) {
+      rec.onspeechstart = live(function () { state.speech = true; plog('son détecté'); liveMsg(state, 'Voix détectée…'); });
+      rec.onresult = live(function (ev) {
         state.alts = collectAlts(ev.results);
         state.speech = true;
         plog('résultat : ' + (state.alts[0] || '(vide)'));
         if (state.alts.length) liveMsg(state, 'J\'entends : « ' + state.alts[0] + ' »');
         stopIn(2300);
-      };
-      rec.onerror = function (ev) { state.error = ev.error; plog('erreur : ' + ev.error); };
-      rec.onend = function () {
+      });
+      rec.onerror = live(function (ev) { state.error = ev.error; plog('erreur : ' + ev.error); });
+      rec.onend = live(function () {
         var elapsed = Date.now() - t0;
         var hard = state.error && state.error !== 'no-speech' && state.error !== 'aborted';
         plog('écoute terminée après ' + elapsed + ' ms');
@@ -5439,8 +5491,16 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
           return;
         }
         finish(state);
-      };
-      rec.start();
+      });
+      try { rec.start(); }
+      catch (e) {
+        if (reused) {                         // the shared object refuses to start (still busy): use a brand new one
+          plog('le moteur réutilisé refuse de démarrer (' + (e && e.name) + ') : j\'en crée un nouveau');
+          srShared = null;
+          return launch();
+        }
+        throw e;
+      }
       armStall(6500);
     };
     var armStall = function (ms) {
@@ -5653,19 +5713,45 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     try { navigator.clipboard.writeText(text).then(function () { statusEl.textContent = 'Journal copié.'; }, function () { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }); }
     catch (e) { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }
   });
+  var primeBtn = document.getElementById('audioprime');
+  if (primeBtn && isIOS()) {
+    primeBtn.hidden = false;
+    primeBtn.setAttribute('aria-pressed', String(primeOn));
+    primeBtn.addEventListener('click', function () {
+      primeOn = !primeOn;
+      primeBtn.setAttribute('aria-pressed', String(primeOn));
+      try { localStorage.setItem('bd-chinois-audioprime', primeOn ? '1' : '0'); } catch (e) {}
+      statusEl.textContent = primeOn ? 'Un court silence sera joué avant chaque écoute pour réveiller le son.' : 'Amorçage audio désactivé.';
+      plog('réglage : amorçage audio ' + (primeOn ? 'activé' : 'désactivé'));
+    });
+  }
+  var srReuseBtn = document.getElementById('srreuse');
+  if (srReuseBtn && isIOS()) {
+    srReuseBtn.hidden = false;
+    srReuseBtn.setAttribute('aria-pressed', String(reuseSR));
+    srReuseBtn.addEventListener('click', function () {
+      reuseSR = !reuseSR;
+      srReuseBtn.setAttribute('aria-pressed', String(reuseSR));
+      try { localStorage.setItem('bd-chinois-srreuse', reuseSR ? '1' : '0'); } catch (e) {}
+      releaseRecs(); srShared = null;
+      statusEl.textContent = reuseSR ? 'Le moteur d\'écoute sera réutilisé d\'un exercice à l\'autre.' : 'Un nouveau moteur d\'écoute sera créé à chaque exercice.';
+      plog('réglage : réutilisation du moteur ' + (reuseSR ? 'activée' : 'désactivée'));
+    });
+  }
   var autoRepairBtn = document.getElementById('autorepair');
   if (autoRepairBtn && isIOS()) {
     autoRepairBtn.hidden = false;
     autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
     autoRepairBtn.addEventListener('click', function () {
       autoRepair = !autoRepair;
+      plog('réglage : réparation automatique ' + (autoRepair ? 'activée' : 'désactivée'));
       autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
       try { localStorage.setItem('bd-chinois-autorepair', autoRepair ? '1' : '0'); } catch (e) {}
       statusEl.textContent = autoRepair ? 'Réparation automatique du micro activée : la page se recharge avant chaque nouvel exercice.' : 'Réparation automatique désactivée.';
     });
   }
   document.getElementById('micreset').addEventListener('click', function () {
-    stopAll(); stopPractice(); releaseStreams(); releaseRecs();
+    stopAll(); stopPractice(); releaseStreams(); releaseRecs(); srShared = null;
     try { amb.release(); } catch (e) {}
     try { if (synth) synth.cancel(); } catch (e) {}
     statusEl.textContent = 'Micro réinitialisé : tout est libéré. Réessaie un exercice 🎤.';
