@@ -480,6 +480,12 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
 .tone-svg { color: var(--teal-dark); }
 :root[data-theme="dark"] .tone-svg { color: #7fe3d6; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tone-svg { color: #7fe3d6; } }
+.tone-fr { font-weight: 800; color: var(--pinyin); font-size: 1.05rem; }
+.tone-table { display: grid; gap: .5rem; margin: .5rem 0; }
+.tone-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tone-row .chip [lang] { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 1.2rem; }
+.tone-row .chip small { color: var(--muted); font-weight: 700; }
+.tone-all { margin: 0 0 1.2rem; }
 .tone-play [lang] { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 1.15rem; }
 .qz-opts.two { grid-template-columns: 1fr; }
 @media (min-width: 640px) { .qz-opts.two { grid-template-columns: 1fr 1fr; } }
@@ -6739,11 +6745,22 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   var tnMode = document.getElementById('tnmode');
   var TN = { active: false, qs: [], i: 0, score: 0, answered: false, mode: 'tone', token: 0 };
   if (tnRef) {
-    tnRef.innerHTML = [0, 1, 2, 3].map(function (t) {
+    var tnHtml = [0, 1, 2, 3].map(function (t) {
       var ex = TONE_FAMILIES[0][t];
       return '<div class="tone-card"><div class="tone-svg">' + toneSvg(t, 64) + '</div><b>' + TONE_NAMES[t] + '</b>' +
-        '<button type="button" class="tool-btn tone-play" data-zh="' + ex[0] + '" aria-label="Écouter ' + ex[1] + '">🔊 <span lang="zh-CN">' + ex[0] + '</span> ' + ex[1] + '</button></div>';
+        '<button type="button" class="tool-btn tone-play" data-zh="' + ex[0] + '" aria-label="Écouter ' + ex[1] + ', ' + esc(ex[2]) + '">🔊 <span lang="zh-CN">' + ex[0] + '</span> ' + ex[1] + '</button>' +
+        '<span class="tone-fr">' + esc(ex[2]) + '</span></div>';
     }).join('');
+    // every series of four syllables, with the meaning of each character
+    var tnAll = '<details class="gram tone-all"><summary>📚 Toutes les séries de quatre tons, avec leur traduction (' + TONE_FAMILIES.length + ')</summary><div class="tone-table">';
+    TONE_FAMILIES.forEach(function (fam) {
+      tnAll += '<div class="tone-row">' + fam.map(function (it, t) {
+        return '<button type="button" class="chip tone-play" data-zh="' + it[0] + '" aria-label="Écouter ' + it[1] + ', ' + esc(it[2]) + '"><span lang="zh-CN">' + it[0] + '</span> <small>' + it[1] + ' · ' + esc(it[2]) + '</small></button>';
+      }).join('') + '</div>';
+    });
+    tnAll += '</div></details>';
+    tnRef.innerHTML = tnHtml;
+    tnRef.insertAdjacentHTML('afterend', tnAll);
   }
   function tnSay(zh, done) { stopAll(); speak(zh, done || null, 'lin'); }
   function rnd(n) { return Math.floor(Math.random() * n); }
