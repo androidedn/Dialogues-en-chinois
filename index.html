@@ -706,6 +706,8 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <select id="voice-denis" class="voice-select" aria-label="Voix de Denis"><option value="">Automatique</option></select>
       <span class="speed-label">Voix de Xiao Lin</span>
       <select id="voice-lin" class="voice-select" aria-label="Voix de Xiao Lin"><option value="">Automatique</option></select>
+      <button type="button" class="tool-btn" id="voicerefresh" title="Interroge à nouveau le navigateur sur les voix disponibles">🔄 Actualiser la liste</button>
+      <button type="button" class="tool-btn" id="voiceall" aria-pressed="false" title="Montre aussi les voix des autres langues, pour vérifier ce que le navigateur propose">Afficher toutes les voix</button>
     </div>
     <div class="speed" role="group" aria-label="Volume du fond sonore" id="ambgroup">
       <span class="speed-label">Volume du fond sonore</span>
@@ -4579,6 +4581,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   var body = document.body;
   var saved = {};
   try { saved = JSON.parse(localStorage.getItem('bd-chinois-toggles') || '{}') || {}; } catch (e) { saved = {}; }
+  if (saved.rec === undefined && isIOS() && /Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Edg\//.test(navigator.userAgent)) saved.rec = false;
   document.querySelectorAll('.toggle').forEach(function (btn) {
     var key = btn.dataset.key;
     if (saved[key] === false) {
@@ -4652,9 +4655,13 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   var FEMALE_RE = /ting-?ting|mei-?jia|yu-?shu|xiao-?(xiao|yi|chen|hui|mo|shuang|rui|xuan)|hui-?hui|yao-?yao|li-?li|\bfemale\b|\bwoman\b|femme/i;
   var voiceSels = { denis: document.getElementById('voice-denis'), lin: document.getElementById('voice-lin') };
 
+  var ZH_NAME_RE = /chinese|中文|普通话|普通話|國語|国语|粤语|粵語|mandarin|cantonese|ting-?ting|mei-?jia|sin-?ji|li-?mu|yu-?shu|lilian|zhiwei|huihui|yaoyao|kangkang|xiaoxiao|yunxi|yunjian/i;
+  function isZhVoice(v) { return /^(zh|cmn|yue|wuu)/i.test(v.lang || '') || ZH_NAME_RE.test(v.name || ''); }
+  var voiceAll = false;
+  try { voiceAll = localStorage.getItem('bd-chinois-voiceall') === '1'; } catch (e) {}
   function zhVoices() {
     if (!synth) return [];
-    var list = synth.getVoices().filter(function (v) { return /^zh/i.test(v.lang); });
+    var list = synth.getVoices().filter(isZhVoice);
     list.sort(function (a, b) {
       return (/^zh[-_]CN/i.test(b.lang) ? 1 : 0) - (/^zh[-_]CN/i.test(a.lang) ? 1 : 0);
     });
@@ -4662,9 +4669,9 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   }
   function resolveVoice(who) {
     var list = zhVoices();
-    if (!list.length) return null;
     var id = chosen[who], i;
-    if (id) { for (i = 0; i < list.length; i++) { if (list[i].voiceURI === id) return list[i]; } }
+    if (id && synth) { var all = synth.getVoices(); for (i = 0; i < all.length; i++) { if (all[i].voiceURI === id) return all[i]; } }
+    if (!list.length) return null;
     var re = who === 'lin' ? FEMALE_RE : MALE_RE;
     for (i = 0; i < list.length; i++) { if (re.test(list[i].name)) return list[i]; }
     return list[0];
@@ -4684,19 +4691,30 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     pitch = Math.max(0.5, Math.min(1.6, pitch * (VOICE_PITCH[base] || 1)));
     return { voice: v, pitch: pitch };
   }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
   function fillVoices() {
     if (!synth) return;
-    var list = zhVoices();
+    var all = synth.getVoices(), list = zhVoices();
     var hint = document.getElementById('voicehint');
     if (hint) {
-      var chromium = /Chrome|Chromium|CriOS|Edg\//.test(navigator.userAgent);
-      if (!chromium && list.length <= 3) {
-        hint.textContent = 'Safari ne propose que les voix préinstallées de macOS : les voix téléchargées n\'apparaissent que dans Chrome ou Edge. La voix de Denis est abaissée automatiquement si aucune voix masculine n\'est disponible.';
+      var chromium = /Chrome|Chromium|CriOS|Edg\//.test(navigator.userAgent), ios = isIOS();
+      var counts = list.length + ' voix chinoise' + (list.length > 1 ? 's' : '') + ' détectée' + (list.length > 1 ? 's' : '') + ' sur ' + all.length + ' voix proposée' + (all.length > 1 ? 's' : '') + ' par le navigateur.';
+      if (ios) {
+        hint.textContent = counts + ' Sur iPhone et iPad, tous les navigateurs (Safari, Chrome…) utilisent le moteur d\'Apple, qui ne transmet aux sites web qu\'une partie des voix installées : les voix « améliorées » ou « premium » ne sont en général pas proposées, même téléchargées. La voix de Denis est abaissée automatiquement si aucune voix masculine n\'est disponible.';
+        hint.hidden = false;
+      } else if (!chromium && list.length <= 3) {
+        hint.textContent = counts + ' Safari ne propose que les voix préinstallées de macOS : les voix téléchargées n\'apparaissent que dans Chrome ou Edge. La voix de Denis est abaissée automatiquement si aucune voix masculine n\'est disponible.';
+        hint.hidden = false;
+      } else if (list.length <= 3) {
+        hint.textContent = counts;
         hint.hidden = false;
       } else {
         hint.hidden = true;
       }
     }
+    var fmt = function (v) { return v.name + ' (' + v.lang + ')'; };
     ['denis', 'lin'].forEach(function (who) {
       var sel = voiceSels[who];
       if (!sel) return;
@@ -4706,18 +4724,44 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       auto.textContent = list.length ? 'Automatique' : 'Automatique (aucune voix chinoise listée)';
       sel.appendChild(auto);
       var found = false;
-      list.forEach(function (v) {
+      var addTo = function (parent, v) {
         var o = document.createElement('option');
-        o.value = v.voiceURI;
-        o.textContent = v.name + ' (' + v.lang + ')';
+        o.value = v.voiceURI; o.textContent = fmt(v);
         if (v.voiceURI === chosen[who]) { o.selected = true; found = true; }
-        sel.appendChild(o);
-      });
+        parent.appendChild(o);
+      };
+      if (voiceAll) {
+        var g1 = document.createElement('optgroup'); g1.label = 'Voix chinoises';
+        var g2 = document.createElement('optgroup'); g2.label = 'Autres langues (pour vérifier)';
+        list.forEach(function (v) { addTo(g1, v); });
+        all.filter(function (v) { return list.indexOf(v) < 0; }).forEach(function (v) { addTo(g2, v); });
+        if (g1.children.length) sel.appendChild(g1);
+        if (g2.children.length) sel.appendChild(g2);
+      } else {
+        list.forEach(function (v) { addTo(sel, v); });
+      }
       if (!found) sel.value = '';
     });
+    var allBtn = document.getElementById('voiceall');
+    if (allBtn) allBtn.setAttribute('aria-pressed', String(voiceAll));
   }
   fillVoices();
   if (synth && synth.addEventListener) synth.addEventListener('voiceschanged', fillVoices);
+  // some browsers (notably on iPhone/iPad) only fill the list later: ask again after a moment and at the first touch
+  setTimeout(fillVoices, 1500);
+  document.addEventListener('pointerdown', function onceVoices() { document.removeEventListener('pointerdown', onceVoices); setTimeout(fillVoices, 300); });
+  var voiceRefreshBtn = document.getElementById('voicerefresh');
+  if (voiceRefreshBtn) voiceRefreshBtn.addEventListener('click', function () {
+    fillVoices();
+    var n = zhVoices().length, t = synth ? synth.getVoices().length : 0;
+    statusEl.textContent = 'Liste mise à jour : ' + n + ' voix chinoise' + (n > 1 ? 's' : '') + ' sur ' + t + ' voix proposées.';
+  });
+  var voiceAllBtn = document.getElementById('voiceall');
+  if (voiceAllBtn) voiceAllBtn.addEventListener('click', function () {
+    voiceAll = !voiceAll;
+    try { localStorage.setItem('bd-chinois-voiceall', voiceAll ? '1' : '0'); } catch (e) {}
+    fillVoices();
+  });
   ['denis', 'lin'].forEach(function (who) {
     var sel = voiceSels[who];
     if (!sel) return;
@@ -4808,7 +4852,12 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
 
   /* ---------- Pronunciation practice ---------- */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  var IS_CHROMIUM = /Chrome|Chromium|CriOS|Edg\//.test(navigator.userAgent);
+  // Blink-based Chrome/Edge only: on iPhone and iPad every browser runs WebKit (like Safari), whatever its name
+  var IS_CHROMIUM = !isIOS() && /Chrome|Chromium|Edg\//.test(navigator.userAgent);
+  var IOS_OTHER = isIOS() && /Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Edg\//.test(navigator.userAgent);
+  function iosNote() {
+    return IOS_OTHER ? ' Sur iPad et iPhone, les navigateurs autres que Safari (Chrome, Edge, Firefox…) n\'ont pas toujours accès à la reconnaissance vocale ni au micro de façon stable : essaie avec Safari pour les exercices 🎤.' : '';
+  }
   var canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
   var active = null;
   var voiceAudio = null;
@@ -5048,12 +5097,12 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   function errorMessage(state) {
     var e = state.error, m = state.micError;
     if (e === 'not-allowed' || e === 'service-not-allowed' || m === 'NotAllowedError' || m === 'SecurityError') {
-      return 'Le micro est bloqué pour cette page. Autorise-le dans les réglages de ton navigateur (pour Safari : Réglages > Sites web > Microphone), puis réessaie.';
+      return 'Le micro est bloqué pour cette page. Autorise-le dans les réglages de ton navigateur (pour Safari : Réglages > Sites web > Microphone), puis réessaie.' + (IOS_OTHER ? ' Sur iPad, vérifie aussi Réglages > (nom du navigateur) > Micro, et sache que ce navigateur peut redemander l\'autorisation à chaque ouverture.' : '') + iosNote();
     }
     if (e === 'audio-capture' || m === 'NotFoundError') return 'Aucun micro détecté sur cet appareil.';
     if (e === 'network') return 'La reconnaissance vocale a besoin d\'une connexion internet.';
     if (e === 'no-speech') return 'Je n\'ai rien entendu. Rapproche-toi du micro et réessaie.';
-    if (e === 'unsupported') return 'Ce navigateur ne permet pas d\'utiliser le micro. Essaie Chrome, Edge ou Safari.';
+    if (e === 'unsupported') return 'Ce navigateur ne permet pas d\'utiliser le micro. Essaie Safari, Chrome ou Edge sur ordinateur.' + iosNote();
     if (e && e !== 'aborted') return 'La reconnaissance vocale a échoué (' + e + '). Réessaie.';
     return null;
   }
@@ -5120,10 +5169,10 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       v.classList.add('low');
       v.textContent = msg;
     } else if (!state.rec) {
-      v.textContent = 'Pas de notation automatique sur ce navigateur : réécoute ta voix et compare-la au modèle.';
+      v.textContent = 'Pas de notation automatique sur ce navigateur : réécoute ta voix et compare-la au modèle.' + iosNote();
     } else if (!state.started) {
       v.classList.add('low');
-      v.textContent = 'Le navigateur n\'a pas démarré l\'écoute. Sur Safari, vérifie que la dictée est activée dans les réglages de ton appareil, puis réessaie.';
+      v.textContent = 'Le navigateur n\'a pas démarré l\'écoute. Sur Safari, vérifie que la dictée est activée dans les réglages de ton appareil, puis réessaie.' + iosNote();
       offerRetry = state.wantRec;
     } else if (!state.speech) {
       v.classList.add('low');
@@ -5320,6 +5369,8 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var embedded = true;
     try { embedded = window.self !== window.top; } catch (e) {}
     dlog('Page affichée dans un cadre intégré : ' + (embedded ? 'oui' : 'non'));
+    dlog('Appareil : ' + (isIOS() ? 'iPhone / iPad (tous les navigateurs utilisent le moteur de Safari)' : 'ordinateur ou Android') + (IOS_OTHER ? ' · navigateur autre que Safari' : ''));
+    if (IOS_OTHER) dlog('Conseil : pour les exercices de prononciation sur iPad, Safari est le plus fiable.', 'bad');
     dlog('Reconnaissance vocale du navigateur : ' + (SR ? 'disponible' : 'absente'), SR ? '' : 'bad');
     dlog('Enregistrement de la voix : ' + (canRecord ? 'disponible' : 'absent'));
     try {
@@ -7278,6 +7329,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   function setSettings(open, remember) {
     settingsEl.hidden = !open;
     settingsBtn.setAttribute('aria-expanded', String(open));
+    if (open && typeof fillVoices === 'function') fillVoices();
     settingsBtn.textContent = open ? '⚙ Réglages ▴' : '⚙ Réglages ▾';
     if (remember) { try { localStorage.setItem('bd-chinois-settings', open ? '1' : '0'); } catch (e) {} }
   }
