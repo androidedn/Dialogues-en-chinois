@@ -736,6 +736,10 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <button type="button" class="tool-btn" id="installbtn" hidden>📲 Installer</button>
       <p class="muted" id="offstate"></p>
     </details>
+    <div class="speed" role="group" aria-label="Version du site">
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 36</span>
+      <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
+    </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
   </div>
 
@@ -886,6 +890,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
+      <p class="muted">Version du site : 2 octobre 2026 · n° 36.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -6371,6 +6376,19 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       paintAllStars(); renderProgress();
       statusEl.textContent = n + ' score' + (n > 1 ? 's importés.' : ' importé.');
     } catch (e) { statusEl.textContent = 'Import impossible : ce texte n\'est pas une progression valide.'; }
+  });
+
+  /* ---------- Force the newest version (clears this site's caches, then reloads) ---------- */
+  var forceBtn = document.getElementById('forceupdate');
+  if (forceBtn) forceBtn.addEventListener('click', function () {
+    statusEl.textContent = 'Mise à jour en cours…';
+    var steps = [];
+    try {
+      if (window.caches && caches.keys) steps.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) steps.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.update ? r.update() : null; })); }));
+      if (window.fetch) steps.push(fetch(location.href.split('#')[0], { cache: 'reload' }).catch(function () {}));
+    } catch (e) {}
+    Promise.all(steps).catch(function () {}).then(function () { try { location.reload(); } catch (e) {} });
   });
 
   /* ---------- Install on the home screen + offline ---------- */
