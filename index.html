@@ -709,10 +709,8 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <input type="range" id="wakevol" class="range" min="0" max="100" step="1" value="8" aria-label="Volume du caractère de réveil"> <output id="wakevolout">8 %</output>
     </label>
     <label class="wr-inline" id="wakewrap" hidden>Réveil du micro avant l'écoute
-      <select id="wakemode" class="voice-select"><option value="char">Un seul caractère court (好)</option><option value="model">Lire le modèle</option><option value="low">Lire le modèle à voix basse</option><option value="blip">Son vide (quelques ms)</option><option value="silent">Synthèse silencieuse</option><option value="off">Aucun</option></select>
+      <select id="wakemode" class="voice-select"><option value="char">Un seul caractère court (好)</option><option value="model">Lire le modèle</option><option value="off">Aucun</option></select>
     </label>
-    <button class="tool-btn" id="srreuse" aria-pressed="true" hidden title="Sur iPad et iPhone, garde le même moteur d'écoute d'un exercice à l'autre au lieu d'en créer un nouveau (essai pour éviter les silences)">🔁 Réutiliser le moteur d'écoute</button>
-    <button class="tool-btn" id="autorepair" aria-pressed="true" hidden title="Sur iPad et iPhone, recharge la page avant chaque nouvel exercice pour que le micro entende toujours (contourne un défaut du moteur vocal d'Apple)">♻ Réparer le micro automatiquement</button>
     <button class="tool-btn" id="micreset" title="Arrête toute écoute, libère le micro et le son, puis réessaie">♻ Réinitialiser le micro</button>
     <div class="speed" role="group" aria-label="Vitesse de lecture">
       <span class="speed-label">Vitesse</span>
@@ -757,7 +755,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 51</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 53</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -775,6 +773,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <ul id="diaglog" aria-live="polite"></ul>
       <h3 class="group-title">Journal du dernier exercice 🎤</h3>
       <p class="muted">Fais un exercice de prononciation, puis reviens ici : chaque ligne indique ce que le navigateur a fait. Tu peux me recopier ces lignes.</p>
+      <p class="muted" id="pracstats"></p>
       <ul id="praclog" tabindex="0" aria-label="Journal des exercices"></ul>
       <button type="button" class="tool-btn" id="plogcopy">📋 Copier le journal</button>
     </section>
@@ -914,7 +913,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 51.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 53.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -5224,6 +5223,13 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       else v.textContent = 'Enregistrement terminé : touche « Ma voix » pour te réécouter, ou « Comparer » pour l\'entendre juste après le modèle.';
       return;
     }
+    if (state.deaf && !(state.alts && state.alts.length)) {
+      v.classList.add('low');
+      v.textContent = 'Je n\'entends rien : le moteur vocal de l\'iPad se bloque par moments, même après le réveil. Attends une trentaine de secondes puis réessaie, ou touche « M\'enregistrer seulement » pour t\'enregistrer sans note.';
+      card.querySelector('.repair').hidden = false;
+      onPracticeResult(card, null);
+      return;
+    }
     // the recognition service and the voice recorder fought for the microphone: retry once, without recording
     if (state.error === 'audio-capture' && state.wantRec && !card.__autoRetried) {
       card.__autoRetried = true;
@@ -5261,10 +5267,27 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     onPracticeResult(card, null);
   }
 
+  var PST = { ok: 0, rescued: 0, fail: 0 };
+  try { var pst0 = sessionStorage.getItem('bd-pstats'); if (pst0) PST = JSON.parse(pst0) || PST; } catch (e) {}
+  function renderPstats() {
+    var el = document.getElementById('pracstats');
+    if (!el) return;
+    var n = PST.ok + PST.rescued + PST.fail;
+    el.textContent = n ? 'Bilan de cette session : ' + n + ' exercice' + (n > 1 ? 's' : '') + ' · ' + PST.ok + ' entendu' + (PST.ok > 1 ? 's' : '') + ' du premier coup · ' + PST.rescued + ' après le secours · ' + PST.fail + ' sans résultat.' : 'Aucun exercice dans cette session.';
+  }
+  function countPractice(state) {
+    if (state.recOnly) return;
+    var heard = state.alts && state.alts.length;
+    if (heard && !state.stalls) PST.ok++; else if (heard) PST.rescued++; else PST.fail++;
+    try { sessionStorage.setItem('bd-pstats', JSON.stringify(PST)); } catch (e) {}
+    renderPstats();
+  }
   function finish(state) {
     if (state.finished || state.aborted) return;
     state.finished = true;
     releaseRecs();
+    countPractice(state);
+    if (state.deaf) { srShared = null; plog('moteur d\'écoute remis à zéro pour le prochain exercice'); }
     plog('fin de l\'exercice' + (state.error ? ' (erreur : ' + state.error + ')' : '') + ((state.alts && state.alts[0]) ? ' · compris : ' + state.alts[0] : ' · rien compris'));
     clearTimeout(state.timer);
     clearTimeout(state.watch);
@@ -5317,8 +5340,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   // On iPad the microphone stays "taken" by the previous recognition object, so the next session hears nothing:
   // every object is tracked and explicitly aborted (and its handlers dropped) as soon as a session ends.
   var srPool = [], srShared = null, srTok = 0;
-  var reuseSR = isIOS();
-  try { var rsSaved = localStorage.getItem('bd-chinois-srreuse'); if (rsSaved !== null) reuseSR = rsSaved === '1'; } catch (e) {}
+  var reuseSR = isIOS();   // fixed: one engine object is kept between exercises on iPad/iPhone
   function releaseRecs() {
     if (srShared) {
       try { srShared.onstart = srShared.onaudiostart = srShared.onspeechstart = srShared.onresult = srShared.onerror = srShared.onend = null; } catch (e) {}
@@ -5352,12 +5374,9 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var ul = document.getElementById('praclog');
     if (ul) { ul.textContent = ''; PLOG.slice(-200).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); ul.scrollTop = ul.scrollHeight; }
   }
-  plog('— page chargée (version n° 51) —');
+  plog('— page chargée (version n° 53) —');
   // On iPad the speech engine reliably hears only the first session after the page is loaded (see the journals).
   // So, before a new exercise, the page reloads itself once and comes back to the same card.
-  var srSessions = 0;
-  var autoRepair = false;
-  try { var arSaved = localStorage.getItem('bd-chinois-autorepair'); if (arSaved !== null) autoRepair = arSaved === '1'; } catch (e) {}
   // Plays a very short silence through the Web Audio API just before listening, to wake up the iPad audio session
   // (a trick reported by developers; it is an experiment, so it can be switched off in the settings).
   // The journals show that after a voice playback (speech synthesis) the next listening works, while a series of
@@ -5365,55 +5384,18 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   var wakeVol = 8;
   try { var wvSaved = parseInt(localStorage.getItem('bd-chinois-wakevol'), 10); if (wvSaved >= 0 && wvSaved <= 100) wakeVol = wvSaved; } catch (e) {}
   var wakeMode = isIOS() ? 'char' : 'off';
-  try { var wkSaved = localStorage.getItem('bd-chinois-wake'); if (wkSaved === 'char' || wkSaved === 'blip' || wkSaved === 'model' || wkSaved === 'low' || wkSaved === 'silent' || wkSaved === 'off') wakeMode = wkSaved; } catch (e) {}
-  // A few milliseconds of inaudible sound, built in memory (22 kHz, 16 bits, ±2 steps of noise so it is never optimised away).
-  var blipUrl = null;
-  function makeBlip() {
-    var n = 2646, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), i;
-    var str = function (o, t) { for (var k = 0; k < t.length; k++) v.setUint8(o + k, t.charCodeAt(k)); };
-    str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt '); v.setUint32(16, 16, true);
-    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 22050, true); v.setUint32(28, 44100, true);
-    v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
-    for (i = 0; i < n; i++) v.setInt16(44 + i * 2, (i % 2 ? 2 : -2), true);
-    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
-  }
-  function playBlip(done) {
-    var over = false, a = null;
-    var fin = function () {
-      if (over) return; over = true;
-      try { if (a) { a.pause(); a.removeAttribute('src'); a.load(); } } catch (e) {}
-      done();
-    };
-    try {
-      if (!blipUrl) blipUrl = makeBlip();
-      a = new Audio(blipUrl);
-      a.volume = 1;
-      a.addEventListener('ended', function () { plog('son vide : terminé'); fin(); });
-      a.addEventListener('error', function () { plog('son vide : erreur de lecture'); fin(); });
-      var p = a.play();
-      plog('son vide : lecture lancée');
-      if (p && p.catch) p.catch(function (e) { plog('son vide : refusé (' + (e && e.name) + ')'); fin(); });
-      setTimeout(fin, 700);
-    } catch (e) { plog('son vide impossible (' + (e && e.name) + ')'); fin(); }
-  }
+  try { var wkSaved = localStorage.getItem('bd-chinois-wake'); if (wkSaved === 'char' || wkSaved === 'model' || wkSaved === 'off') wakeMode = wkSaved; } catch (e) {}
   function wakeUp(card, mode, done) {
     var el = card.querySelector('.word, .bubble');
     var zh = el ? String(el.dataset.zh || '').replace('…', '') : '';
     var who = el ? el.dataset.who : 'lin';
     var finished = false;
-    var fin = function () { if (finished) return; finished = true; setTimeout(done, (mode === 'model' || mode === 'low') ? 500 : mode === 'blip' ? 30 : mode === 'char' ? 250 : 250); };
-    if (mode === 'blip') { playBlip(fin); return; }
-    var audible = mode === 'char' || ((mode === 'model' || mode === 'low') && zh);
-    if (!audible) {
-      setTimeout(fin, 1500);
-      plog('réveil du micro : synthèse silencieuse');
-      speak('。', fin, who, { volume: 0 });
-      return;
-    }
+    var fin = function () { if (finished) return; finished = true; setTimeout(done, mode === 'model' ? 500 : 250); };
     var text = mode === 'char' ? '好' : zh;
-    var vol = mode === 'low' ? 0.15 : mode === 'char' ? wakeVol / 100 : 1;
+    if (!text) { fin(); return; }
+    var vol = mode === 'char' ? wakeVol / 100 : 1;
     setTimeout(fin, mode === 'char' ? 8000 : 14000);
-    plog('réveil du micro : ' + (mode === 'char' ? 'un seul caractère (好) à volume ' + wakeVol + ' %' : mode === 'low' ? 'lecture du modèle à voix basse' : 'lecture du modèle'));
+    plog('réveil du micro : ' + (mode === 'char' ? 'un seul caractère (好) à volume ' + wakeVol + ' %' : 'lecture du modèle'));
     var tries = 0;
     // The utterance counts as played once its "start" event came. The "end" event is not always delivered on iPad, so after the
     // start we only wait a short, fixed time. If nothing starts at all, it is said again (twice at most).
@@ -5446,13 +5428,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     };
     attempt();
   }
-  plog('réglages : moteur réutilisé ' + (reuseSR ? 'oui' : 'non') + ' · rechargement auto ' + (autoRepair ? 'oui' : 'non') + ' · réveil ' + wakeMode + (wakeMode === 'char' ? ' (volume ' + wakeVol + ' %)' : ''));
-  function reloadForMic(card) {
-    statusEl.textContent = 'Je réinitialise le micro de l\'iPad : la page se recharge, puis touche 🎤 de nouveau.';
-    plog('rechargement automatique de la page avant un nouvel exercice');
-    try { sessionStorage.setItem('bd-reopen', card.dataset.key || ''); sessionStorage.setItem('bd-hint', 'mic'); } catch (e) {}
-    setTimeout(function () { try { location.reload(); } catch (e) {} }, 250);
-  }
+  plog('réglages : réveil ' + wakeMode + (wakeMode === 'char' ? ' (volume ' + wakeVol + ' %)' : ''));
   var openStreams = [];
   function stopStream(st) {
     try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
@@ -5594,7 +5570,12 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       clearTimeout(state.stall);
       state.stall = setTimeout(function () {
         if (state.finished || state.aborted || state.userStop || state.speech || (state.alts && state.alts.length)) return;
-        if (state.stalls >= 1) { plog('toujours aucun son reçu : je ne réinitialise plus'); return; }
+        if (state.stalls >= 1) {
+          plog('toujours aucun son reçu : le moteur semble bloqué, j\'arrête l\'écoute');
+          state.deaf = true; state.userStop = true; clearTimeout(state.silence);
+          stopRec(state);
+          return;
+        }
         state.stalls++;
         plog('aucun son reçu après ' + (ms / 1000) + ' s : réinitialisation de l\'écoute (n° ' + state.stalls + ')');
         clearTimeout(state.silence);
@@ -5617,7 +5598,6 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       if (state.aborted || state.finished) return;
       if (SR) {
         try {
-          srSessions++;
           launch();
           state.timer = setTimeout(function () { state.userStop = true; plog('durée maximale atteinte'); stopRec(state); }, 15000);
           state.watch = setTimeout(function () {
@@ -5641,11 +5621,11 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var wake = (isIOS() && !recOnly && !RP.active && !RV.active && wakeMode !== 'off') ? wakeMode : null;
     if (wake) {
       state.waking = true;
-      listening(card, (wake === 'model' || wake === 'low') ? '🔊 Écoute le modèle, puis parle…' : 'Je démarre le micro…');
+      listening(card, wake === 'model' ? '🔊 Écoute le modèle, puis parle…' : 'Je démarre le micro…');
       wakeUp(card, wake, function () {
         state.waking = false;
         if (state.aborted || state.finished) return;
-        if (wake === 'blip' || wake === 'char') begin(); else setTimeout(begin, 300);
+        if (wake === 'char') begin(); else setTimeout(begin, 300);
       });
     } else {
       var settle = (isIOS() && Date.now() - lastTTS < 30000) ? 1500 : 500;
@@ -5672,7 +5652,6 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var mic = e.target.closest('.mic-btn');
     if (mic) {
       var card = mic.closest('[data-practice]');
-      if (isIOS() && autoRepair && srSessions >= 1 && !(active && active.card === card) && !RP.active && !RV.active) { reloadForMic(card); return; }
       if (active && active.card === card) {
         if (active.waking) { stopAll(); return; }
         if (active.rec) { active.userStop = true; stopRec(active); }
@@ -5809,7 +5788,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var open = diagEl.hidden;
     diagEl.hidden = !open;
     diagBtn.setAttribute('aria-expanded', String(open));
-    if (open) { plog('(journal affiché)'); diagEnv(); diagEl.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); }
+    if (open) { plog('(journal affiché)'); renderPstats(); diagEnv(); diagEl.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); }
   });
   document.getElementById('testmic').addEventListener('click', testMic);
   document.getElementById('plogcopy').addEventListener('click', function () {
@@ -5838,31 +5817,6 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       try { localStorage.setItem('bd-chinois-wake', wakeMode); } catch (e) {}
       statusEl.textContent = 'Réveil du micro : ' + wakeSel.options[wakeSel.selectedIndex].textContent.toLowerCase() + '.';
       plog('réglage : réveil du micro ' + wakeMode);
-    });
-  }
-  var srReuseBtn = document.getElementById('srreuse');
-  if (srReuseBtn && isIOS()) {
-    srReuseBtn.hidden = false;
-    srReuseBtn.setAttribute('aria-pressed', String(reuseSR));
-    srReuseBtn.addEventListener('click', function () {
-      reuseSR = !reuseSR;
-      srReuseBtn.setAttribute('aria-pressed', String(reuseSR));
-      try { localStorage.setItem('bd-chinois-srreuse', reuseSR ? '1' : '0'); } catch (e) {}
-      releaseRecs(); srShared = null;
-      statusEl.textContent = reuseSR ? 'Le moteur d\'écoute sera réutilisé d\'un exercice à l\'autre.' : 'Un nouveau moteur d\'écoute sera créé à chaque exercice.';
-      plog('réglage : réutilisation du moteur ' + (reuseSR ? 'activée' : 'désactivée'));
-    });
-  }
-  var autoRepairBtn = document.getElementById('autorepair');
-  if (autoRepairBtn && isIOS()) {
-    autoRepairBtn.hidden = false;
-    autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
-    autoRepairBtn.addEventListener('click', function () {
-      autoRepair = !autoRepair;
-      plog('réglage : réparation automatique ' + (autoRepair ? 'activée' : 'désactivée'));
-      autoRepairBtn.setAttribute('aria-pressed', String(autoRepair));
-      try { localStorage.setItem('bd-chinois-autorepair', autoRepair ? '1' : '0'); } catch (e) {}
-      statusEl.textContent = autoRepair ? 'Réparation automatique du micro activée : la page se recharge avant chaque nouvel exercice.' : 'Réparation automatique désactivée.';
     });
   }
   document.getElementById('micreset').addEventListener('click', function () {
