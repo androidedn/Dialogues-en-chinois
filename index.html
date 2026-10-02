@@ -701,7 +701,10 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     <button class="toggle" data-key="scroll" aria-pressed="true" title="Fait défiler la page jusqu'à la phrase lue">Défilement auto</button>
     <button class="toggle" data-key="rec" aria-pressed="true" title="À désactiver si le micro ne capte rien">Enregistrer ma voix</button>
     <button class="tool-btn" id="diagbtn" aria-expanded="false" aria-controls="diag">Tester mon micro</button>
-    <button class="tool-btn" id="audioprime" aria-pressed="true" hidden title="Sur iPad et iPhone, joue un silence très court juste avant d'écouter, pour réveiller le système audio (essai)">🔈 Amorcer l'audio avant l'écoute</button>
+    <label class="wr-inline" id="wakewrap" hidden>Réveil du micro avant l'écoute
+      <select id="wakemode" class="voice-select"><option value="blip">Son vide (quelques ms)</option><option value="model">Lire le modèle</option><option value="silent">Synthèse silencieuse</option><option value="off">Aucun</option></select>
+    </label>
+    <button class="tool-btn" id="audioprime" aria-pressed="false" hidden title="Sur iPad et iPhone, joue un silence très court juste avant d'écouter, pour réveiller le système audio (essai)">🔈 Amorcer l'audio avant l'écoute</button>
     <button class="tool-btn" id="srreuse" aria-pressed="true" hidden title="Sur iPad et iPhone, garde le même moteur d'écoute d'un exercice à l'autre au lieu d'en créer un nouveau (essai pour éviter les silences)">🔁 Réutiliser le moteur d'écoute</button>
     <button class="tool-btn" id="autorepair" aria-pressed="true" hidden title="Sur iPad et iPhone, recharge la page avant chaque nouvel exercice pour que le micro entende toujours (contourne un défaut du moteur vocal d'Apple)">♻ Réparer le micro automatiquement</button>
     <button class="tool-btn" id="micreset" title="Arrête toute écoute, libère le micro et le son, puis réessaie">♻ Réinitialiser le micro</button>
@@ -748,7 +751,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 45</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 47</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -905,7 +908,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 45.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 47.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -4797,7 +4800,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   });
 
   var lastTTS = 0;
-  function speak(text, done, who) {
+  function speak(text, done, who, opts) {
     if (!synth) {
       statusEl.textContent = 'Ce navigateur ne sait pas lire à voix haute.';
       if (done) done();
@@ -4810,6 +4813,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       u.rate = rate;
       var vs = voiceSettings(who);
       u.pitch = vs.pitch;
+      if (opts && opts.volume !== undefined) u.volume = opts.volume;
       if (vs.voice) { u.voice = vs.voice; u.lang = vs.voice.lang || 'zh-CN'; }
       else if (synth.getVoices().length) {
         statusEl.textContent = 'Aucune voix chinoise trouvée sur cet appareil : la lecture peut être approximative.';
@@ -5333,7 +5337,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var ul = document.getElementById('praclog');
     if (ul) { ul.textContent = ''; PLOG.slice(-40).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
   }
-  plog('— page chargée (version n° 45) —');
+  plog('— page chargée (version n° 47) —');
   // On iPad the speech engine reliably hears only the first session after the page is loaded (see the journals).
   // So, before a new exercise, the page reloads itself once and comes back to the same card.
   var srSessions = 0;
@@ -5341,7 +5345,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   try { var arSaved = localStorage.getItem('bd-chinois-autorepair'); if (arSaved !== null) autoRepair = arSaved === '1'; } catch (e) {}
   // Plays a very short silence through the Web Audio API just before listening, to wake up the iPad audio session
   // (a trick reported by developers; it is an experiment, so it can be switched off in the settings).
-  var primeOn = isIOS();
+  var primeOn = false;
   try { var prSaved = localStorage.getItem('bd-chinois-audioprime'); if (prSaved !== null) primeOn = prSaved === '1'; } catch (e) {}
   function primeAudio() {
     if (!(isIOS() && primeOn)) return;
@@ -5359,7 +5363,52 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       plog('amorçage audio : silence joué');
     } catch (e) { plog('amorçage audio impossible (' + (e && e.name) + ')'); }
   }
-  plog('réglages : moteur réutilisé ' + (reuseSR ? 'oui' : 'non') + ' · rechargement auto ' + (autoRepair ? 'oui' : 'non') + ' · amorçage audio ' + (primeOn ? 'oui' : 'non'));
+  // The journals show that after a voice playback (speech synthesis) the next listening works, while a series of
+  // listenings without any playback ends up silent: so a short playback is made before each listening on iPad.
+  var wakeMode = isIOS() ? 'blip' : 'off';
+  try { var wkSaved = localStorage.getItem('bd-chinois-wake'); if (wkSaved === 'blip' || wkSaved === 'model' || wkSaved === 'silent' || wkSaved === 'off') wakeMode = wkSaved; } catch (e) {}
+  // A few milliseconds of inaudible sound, built in memory (22 kHz, 16 bits, ±2 steps of noise so it is never optimised away).
+  var blipUrl = null;
+  function makeBlip() {
+    var n = 2646, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), i;
+    var str = function (o, t) { for (var k = 0; k < t.length; k++) v.setUint8(o + k, t.charCodeAt(k)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt '); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 22050, true); v.setUint32(28, 44100, true);
+    v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
+    for (i = 0; i < n; i++) v.setInt16(44 + i * 2, (i % 2 ? 2 : -2), true);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function playBlip(done) {
+    var over = false, a = null;
+    var fin = function () {
+      if (over) return; over = true;
+      try { if (a) { a.pause(); a.removeAttribute('src'); a.load(); } } catch (e) {}
+      done();
+    };
+    try {
+      if (!blipUrl) blipUrl = makeBlip();
+      a = new Audio(blipUrl);
+      a.volume = 1;
+      a.addEventListener('ended', function () { plog('son vide : terminé'); fin(); });
+      a.addEventListener('error', function () { plog('son vide : erreur de lecture'); fin(); });
+      var p = a.play();
+      plog('son vide : lecture lancée');
+      if (p && p.catch) p.catch(function (e) { plog('son vide : refusé (' + (e && e.name) + ')'); fin(); });
+      setTimeout(fin, 700);
+    } catch (e) { plog('son vide impossible (' + (e && e.name) + ')'); fin(); }
+  }
+  function wakeUp(card, mode, done) {
+    var el = card.querySelector('.word, .bubble');
+    var zh = el ? String(el.dataset.zh || '').replace('…', '') : '';
+    var finished = false;
+    var fin = function () { if (finished) return; finished = true; setTimeout(done, mode === 'model' ? 500 : mode === 'blip' ? 30 : 250); };
+    if (mode === 'blip') { playBlip(fin); return; }
+    setTimeout(fin, mode === 'model' ? 7000 : 1500);
+    plog('réveil du micro : ' + (mode === 'model' && zh ? 'lecture du modèle' : 'synthèse silencieuse'));
+    if (mode === 'model' && zh) speak(zh, fin, el.dataset.who);
+    else speak('。', fin, el ? el.dataset.who : 'lin', { volume: 0 });
+  }
+  plog('réglages : moteur réutilisé ' + (reuseSR ? 'oui' : 'non') + ' · rechargement auto ' + (autoRepair ? 'oui' : 'non') + ' · amorçage audio ' + (primeOn ? 'oui' : 'non') + ' · réveil ' + wakeMode);
   function reloadForMic(card) {
     statusEl.textContent = 'Je réinitialise le micro de l\'iPad : la page se recharge, puis touche 🎤 de nouveau.';
     plog('rechargement automatique de la page avant un nouvel exercice');
@@ -5518,7 +5567,13 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
           if (state.finished || state.aborted) return;
           try { launch(); } catch (e) { state.error = 'start'; finish(state); }
         };
-        setTimeout(go, 800);
+        if (wakeMode === 'off') { setTimeout(go, 800); return; }
+        state.waking = true;
+        liveMsg(state, 'Je ne t\'entends pas : écoute le modèle, puis réessaie.');
+        setTimeout(function () {
+          if (state.finished || state.aborted) return;
+          wakeUp(state.card, 'model', function () { state.waking = false; go(); });
+        }, 300);
       }, ms);
     };
     var begin = function () {
@@ -5546,8 +5601,19 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       }
     };
     // on iPhone/iPad the audio system needs a moment to hand the microphone over after speech or sounds
-    var settle = (isIOS() && Date.now() - lastTTS < 30000) ? 1500 : 500;
-    if (isIOS() || IS_ANDROID) setTimeout(begin, settle); else begin();
+    var wake = (isIOS() && !recOnly && !RP.active && !RV.active && wakeMode !== 'off') ? wakeMode : null;
+    if (wake) {
+      state.waking = true;
+      listening(card, wake === 'model' ? '🔊 Écoute le modèle, puis parle…' : 'Je démarre le micro…');
+      wakeUp(card, wake, function () {
+        state.waking = false;
+        if (state.aborted || state.finished) return;
+        if (wake === 'blip') begin(); else setTimeout(begin, 300);
+      });
+    } else {
+      var settle = (isIOS() && Date.now() - lastTTS < 30000) ? 1500 : 500;
+      if (isIOS() || IS_ANDROID) setTimeout(begin, settle); else begin();
+    }
   }
 
   document.addEventListener('click', function (e) {
@@ -5571,6 +5637,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       var card = mic.closest('[data-practice]');
       if (isIOS() && autoRepair && srSessions >= 1 && !(active && active.card === card) && !RP.active && !RV.active) { reloadForMic(card); return; }
       if (active && active.card === card) {
+        if (active.waking) { stopAll(); return; }
         if (active.rec) { active.userStop = true; stopRec(active); }
         else finish(active);
       } else {
@@ -5713,6 +5780,17 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     try { navigator.clipboard.writeText(text).then(function () { statusEl.textContent = 'Journal copié.'; }, function () { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }); }
     catch (e) { statusEl.textContent = 'Copie impossible ici : recopie les lignes à la main.'; }
   });
+  var wakeSel = document.getElementById('wakemode');
+  if (wakeSel && isIOS()) {
+    document.getElementById('wakewrap').hidden = false;
+    wakeSel.value = wakeMode;
+    wakeSel.addEventListener('change', function () {
+      wakeMode = wakeSel.value;
+      try { localStorage.setItem('bd-chinois-wake', wakeMode); } catch (e) {}
+      statusEl.textContent = 'Réveil du micro : ' + wakeSel.options[wakeSel.selectedIndex].textContent.toLowerCase() + '.';
+      plog('réglage : réveil du micro ' + wakeMode);
+    });
+  }
   var primeBtn = document.getElementById('audioprime');
   if (primeBtn && isIOS()) {
     primeBtn.hidden = false;
