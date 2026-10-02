@@ -449,7 +449,9 @@ body.rp-hint-fr .line.rp-mine .bubble .hz, body.rp-hint-fr .line.rp-mine .bubble
 @media (max-width: 559px) { .wr-pane-model { max-width: 190px; } }
 .wr-ctl { border: 0; padding: 0; margin: .8rem 0 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .wr-ctl legend { font-weight: 800; font-size: .9rem; color: var(--muted); padding: 0; margin-bottom: .4rem; }
-.wr-inline { display: inline-flex; align-items: center; gap: .4rem; font-weight: 800; font-size: .9rem; }
+[hidden] { display: none !important; }
+.wr-inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-weight: 800; font-size: .9rem; max-width: 100%; }
+.wr-inline select { max-width: 100%; min-width: 0; }
 .tool-btn[aria-pressed="true"].wr-on { background: var(--teal-dark); color: #fff; }
 .wr-board::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .28;
@@ -702,7 +704,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     <button class="toggle" data-key="rec" aria-pressed="true" title="À désactiver si le micro ne capte rien">Enregistrer ma voix</button>
     <button class="tool-btn" id="diagbtn" aria-expanded="false" aria-controls="diag">Tester mon micro</button>
     <label class="wr-inline" id="wakewrap" hidden>Réveil du micro avant l'écoute
-      <select id="wakemode" class="voice-select"><option value="blip">Son vide (quelques ms)</option><option value="model">Lire le modèle</option><option value="silent">Synthèse silencieuse</option><option value="off">Aucun</option></select>
+      <select id="wakemode" class="voice-select"><option value="char">Un seul caractère court (好)</option><option value="model">Lire le modèle</option><option value="low">Lire le modèle à voix basse</option><option value="blip">Son vide (quelques ms)</option><option value="silent">Synthèse silencieuse</option><option value="off">Aucun</option></select>
     </label>
     <button class="tool-btn" id="audioprime" aria-pressed="false" hidden title="Sur iPad et iPhone, joue un silence très court juste avant d'écouter, pour réveiller le système audio (essai)">🔈 Amorcer l'audio avant l'écoute</button>
     <button class="tool-btn" id="srreuse" aria-pressed="true" hidden title="Sur iPad et iPhone, garde le même moteur d'écoute d'un exercice à l'autre au lieu d'en créer un nouveau (essai pour éviter les silences)">🔁 Réutiliser le moteur d'écoute</button>
@@ -751,7 +753,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 47</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 49</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -908,7 +910,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 47.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 49.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -5337,7 +5339,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var ul = document.getElementById('praclog');
     if (ul) { ul.textContent = ''; PLOG.slice(-40).forEach(function (l) { var li = document.createElement('li'); li.textContent = l; ul.appendChild(li); }); }
   }
-  plog('— page chargée (version n° 47) —');
+  plog('— page chargée (version n° 49) —');
   // On iPad the speech engine reliably hears only the first session after the page is loaded (see the journals).
   // So, before a new exercise, the page reloads itself once and comes back to the same card.
   var srSessions = 0;
@@ -5365,8 +5367,8 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
   }
   // The journals show that after a voice playback (speech synthesis) the next listening works, while a series of
   // listenings without any playback ends up silent: so a short playback is made before each listening on iPad.
-  var wakeMode = isIOS() ? 'blip' : 'off';
-  try { var wkSaved = localStorage.getItem('bd-chinois-wake'); if (wkSaved === 'blip' || wkSaved === 'model' || wkSaved === 'silent' || wkSaved === 'off') wakeMode = wkSaved; } catch (e) {}
+  var wakeMode = isIOS() ? 'char' : 'off';
+  try { var wkSaved = localStorage.getItem('bd-chinois-wake'); if (wkSaved === 'char' || wkSaved === 'blip' || wkSaved === 'model' || wkSaved === 'low' || wkSaved === 'silent' || wkSaved === 'off') wakeMode = wkSaved; } catch (e) {}
   // A few milliseconds of inaudible sound, built in memory (22 kHz, 16 bits, ±2 steps of noise so it is never optimised away).
   var blipUrl = null;
   function makeBlip() {
@@ -5401,11 +5403,18 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var el = card.querySelector('.word, .bubble');
     var zh = el ? String(el.dataset.zh || '').replace('…', '') : '';
     var finished = false;
-    var fin = function () { if (finished) return; finished = true; setTimeout(done, mode === 'model' ? 500 : mode === 'blip' ? 30 : 250); };
+    var fin = function () { if (finished) return; finished = true; setTimeout(done, (mode === 'model' || mode === 'low') ? 500 : mode === 'blip' ? 30 : mode === 'char' ? 200 : 250); };
     if (mode === 'blip') { playBlip(fin); return; }
-    setTimeout(fin, mode === 'model' ? 7000 : 1500);
-    plog('réveil du micro : ' + (mode === 'model' && zh ? 'lecture du modèle' : 'synthèse silencieuse'));
-    if (mode === 'model' && zh) speak(zh, fin, el.dataset.who);
+    if (mode === 'char') {
+      setTimeout(fin, 2500);
+      plog('réveil du micro : un seul caractère (好) à volume 1');
+      speak('好', fin, el ? el.dataset.who : 'lin', { volume: 1 });
+      return;
+    }
+    var audible = (mode === 'model' || mode === 'low') && zh;
+    setTimeout(fin, audible ? 7000 : 1500);
+    plog('réveil du micro : ' + (audible ? (mode === 'low' ? 'lecture du modèle à voix basse' : 'lecture du modèle') : 'synthèse silencieuse'));
+    if (audible) speak(zh, fin, el.dataset.who, mode === 'low' ? { volume: 0.15 } : undefined);
     else speak('。', fin, el ? el.dataset.who : 'lin', { volume: 0 });
   }
   plog('réglages : moteur réutilisé ' + (reuseSR ? 'oui' : 'non') + ' · rechargement auto ' + (autoRepair ? 'oui' : 'non') + ' · amorçage audio ' + (primeOn ? 'oui' : 'non') + ' · réveil ' + wakeMode);
@@ -5604,11 +5613,11 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     var wake = (isIOS() && !recOnly && !RP.active && !RV.active && wakeMode !== 'off') ? wakeMode : null;
     if (wake) {
       state.waking = true;
-      listening(card, wake === 'model' ? '🔊 Écoute le modèle, puis parle…' : 'Je démarre le micro…');
+      listening(card, (wake === 'model' || wake === 'low') ? '🔊 Écoute le modèle, puis parle…' : 'Je démarre le micro…');
       wakeUp(card, wake, function () {
         state.waking = false;
         if (state.aborted || state.finished) return;
-        if (wake === 'blip') begin(); else setTimeout(begin, 300);
+        if (wake === 'blip' || wake === 'char') begin(); else setTimeout(begin, 300);
       });
     } else {
       var settle = (isIOS() && Date.now() - lastTTS < 30000) ? 1500 : 500;
