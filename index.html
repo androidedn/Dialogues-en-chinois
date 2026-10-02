@@ -745,7 +745,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
       <p class="muted" id="offstate"></p>
     </details>
     <div class="speed" role="group" aria-label="Version du site">
-      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 41</span>
+      <span class="speed-label" id="siteversion">Version du site : 2 octobre 2026 · n° 42</span>
       <button type="button" class="tool-btn" id="forceupdate" title="Vide la mémoire du navigateur pour ce site et recharge la page">🔄 Charger la dernière version</button>
     </div>
     <p class="tip">Astuce : désactive « Français » pour t'entraîner, puis touche une bulle pour révéler la traduction.</p>
@@ -902,7 +902,7 @@ body.ruby-on .bubble .py, body.ruby-on .word .py, body.ruby-on .rv-card .py { di
     </section>
 
     <section class="note" id="credits">
-      <p class="muted">Version du site : 2 octobre 2026 · n° 41.</p>
+      <p class="muted">Version du site : 2 octobre 2026 · n° 42.</p>
       <h2>Crédits des sons</h2>
       <p>Les ambiances sont de vrais enregistrements sous licence CC0 (domaine public), trouvés sur Freesound et ajustés (boucle continue, volume égalisé) :</p>
       <p><b>Café</b> : « Bustling Cafe Ambience », Talitha5. <b>Marché</b> : « Farmer's market front », blaukreuz. <b>Rue</b> : « leipzig city park autumn atmo with birds wind and cars », Garuda1982. <b>Soir</b> : « crickets night forest with 2 sharp close cicadas back and forth », kyles, mêlé au café adouci. <b>Bureau</b> : « Mechanical keyboard typing », Shyinka, et « Air Conditioner A/C Vent Hum - Room Tone », Sauron974. <b>Repas de famille</b> et <b>supermarché</b> : « italian restaurant ambient », extrafonia. <b>Librairie</b> : « Quiet library ambience », xkeril. <b>Parc</b> : « birds on morning », trezz77, et « large leaves rustle in the wind sound effect », Garuda1982. <b>Métro</b> : « DC Metro - Interior 2 », crashoverride6. <b>Taxi</b> : « city bus ride with engine sound and people atmo », Garuda1982. <b>Pluie</b> : « Rain ambient sounds », DBlover. <b>Hôtel</b> : « Church interior, St Patrick's Cathedral… », TRP, mêlé au murmure du restaurant.</p>
@@ -4480,6 +4480,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
         '<div class="result" aria-live="polite" hidden>' +
           '<div class="verdict"></div><div class="chars"></div><div class="heard"></div>' +
           '<button type="button" class="mini retry" data-act="retry" hidden>Réessayer sans enregistrer ma voix</button>' +
+          '<button type="button" class="mini repair" data-act="repair" hidden>♻ Réparer le micro (recharge la page)</button>' +
           '<div class="cmp">' +
             '<button type="button" class="mini" data-act="model">▶ Modèle</button>' +
             '<button type="button" class="mini" data-act="mine" disabled>▶ Ma voix</button>' +
@@ -4792,6 +4793,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     });
   });
 
+  var lastTTS = 0;
   function speak(text, done, who) {
     if (!synth) {
       statusEl.textContent = 'Ce navigateur ne sait pas lire à voix haute.';
@@ -4809,8 +4811,10 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       else if (synth.getVoices().length) {
         statusEl.textContent = 'Aucune voix chinoise trouvée sur cet appareil : la lecture peut être approximative.';
       }
-      u.onend = function () { if (done) done(); };
-      u.onerror = function () { if (done) done(); };
+      lastTTS = Date.now();
+      try { plog('voix de synthèse : lecture de « ' + String(text).slice(0, 14) + ' »'); } catch (e) {}
+      u.onend = function () { lastTTS = Date.now(); if (done) done(); };
+      u.onerror = function () { lastTTS = Date.now(); if (done) done(); };
       synth.speak(u);
     } catch (e) {
       if (done) done();
@@ -5147,6 +5151,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     card.querySelector('.chars').innerHTML = '';
     card.querySelector('.heard').textContent = '';
     card.querySelector('.retry').hidden = true;
+    card.querySelector('.repair').hidden = true;
     return v;
   }
   function listening(card, text) {
@@ -5227,6 +5232,10 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       v.textContent = 'Voix détectée, mais pas comprise. Réessaie plus lentement, en détachant bien les sons.';
     }
     if (offerRetry) card.querySelector('.retry').hidden = false;
+    if (isIOS() && (state.stalls >= 1 || state.error === 'audio-capture')) {
+      v.textContent += ' Sur iPad, le moteur vocal d\'Apple se bloque parfois après plusieurs écoutes : touche « Réparer le micro » (la page se recharge, ta progression est conservée).';
+      card.querySelector('.repair').hidden = false;
+    }
     onPracticeResult(card, null);
   }
 
@@ -5239,6 +5248,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     clearTimeout(state.watch);
     clearTimeout(state.silence);
     clearTimeout(state.stall);
+    clearTimeout(state.force);
     if (state.recorder && state.recorder.state === 'recording') { try { state.recorder.stop(); } catch (e) {} }
     if (active === state) active = null;
     setMic(state.card, false);
@@ -5254,6 +5264,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     clearTimeout(s.watch);
     clearTimeout(s.silence);
     clearTimeout(s.stall);
+    clearTimeout(s.force);
     releaseRecs();
     try { if (s.rec) s.rec.abort(); } catch (e) {}
     try { if (s.recorder && s.recorder.state === 'recording') s.recorder.stop(); } catch (e) {}
@@ -5289,6 +5300,14 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       try { r.onstart = r.onaudiostart = r.onspeechstart = r.onresult = r.onerror = r.onend = null; } catch (e) {}
       try { r.abort(); } catch (e) {}
     });
+  }
+  // stops the current recognition and, if the engine never reports its end (it happens on iPad), ends the exercise anyway
+  function stopRec(state) {
+    try { if (state.rec) state.rec.stop(); } catch (e) {}
+    clearTimeout(state.force);
+    state.force = setTimeout(function () {
+      if (!state.finished && !state.aborted) { plog('le moteur ne répond plus à l\'arrêt : fin forcée'); finish(state); }
+    }, 1500);
   }
   var PLOG = [], plogT0 = Date.now();
   function plog(msg) {
@@ -5380,9 +5399,9 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       rec.continuous = IS_CHROMIUM;
       var stopIn = function (ms) {
         clearTimeout(state.silence);
-        state.silence = setTimeout(function () { state.userStop = true; plog('arrêt automatique (silence)'); try { rec.stop(); } catch (e) {} }, ms);
+        state.silence = setTimeout(function () { state.userStop = true; plog('arrêt automatique (silence)'); stopRec(state); }, ms);
       };
-      rec.onstart = function () { state.started = true; plog('écoute démarrée (essai ' + (state.restarts + 1) + ')'); liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); stopIn(9000); };
+      rec.onstart = function () { state.started = true; plog('écoute démarrée (essai ' + (state.restarts + 1) + ')'); liveMsg(state, 'Micro activé : parle maintenant.'); maybeRecord(); stopIn(9000); armStall(4500); };
       rec.onaudiostart = function () { state.started = true; plog('audio capté'); maybeRecord(); };
       // a "speech start" can come from background noise or echo: it must not shorten the listening time
       rec.onspeechstart = function () { state.speech = true; plog('son détecté'); liveMsg(state, 'Voix détectée…'); };
@@ -5410,37 +5429,32 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
         finish(state);
       };
       rec.start();
-      armStall();
+      armStall(6500);
     };
-    var armStall = function () {
+    var armStall = function (ms) {
       if (!isIOS()) return;
       clearTimeout(state.stall);
       state.stall = setTimeout(function () {
         if (state.finished || state.aborted || state.userStop || state.speech || (state.alts && state.alts.length)) return;
         if (state.stalls >= 2) { plog('toujours aucun son reçu : je ne réinitialise plus'); return; }
         state.stalls++;
-        plog('aucun son reçu après 3,5 s : réinitialisation de l\'écoute (n° ' + state.stalls + ')');
+        plog('aucun son reçu après ' + (ms / 1000) + ' s : réinitialisation de l\'écoute (n° ' + state.stalls + ')');
         clearTimeout(state.silence);
         releaseRecs();
+        try { if (synth) synth.cancel(); } catch (e) {}
         var go = function () {
           if (state.finished || state.aborted) return;
           try { launch(); } catch (e) { state.error = 'start'; finish(state); }
         };
-        if (state.stalls === 2 && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          plog('petit test du micro avant de relancer');
-          navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) {
-            try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
-            setTimeout(go, 500);
-          }).catch(function () { setTimeout(go, 500); });
-        } else { setTimeout(go, 600); }
-      }, 3500);
+        setTimeout(go, state.stalls === 1 ? 800 : 1800);
+      }, ms);
     };
     var begin = function () {
       if (state.aborted || state.finished) return;
       if (SR) {
         try {
           launch();
-          state.timer = setTimeout(function () { state.userStop = true; try { if (state.rec) state.rec.stop(); } catch (e) {} }, 15000);
+          state.timer = setTimeout(function () { state.userStop = true; plog('durée maximale atteinte'); stopRec(state); }, 15000);
           state.watch = setTimeout(function () {
             if (!state.started) {
               liveMsg(state, 'Le micro ne démarre pas encore. Si le navigateur demande l\'autorisation, accepte-la. Sur Safari, vérifie aussi que la dictée est activée dans les réglages de ton Mac ou de ton iPhone.');
@@ -5459,7 +5473,8 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       }
     };
     // on iPhone/iPad the audio system needs a moment to hand the microphone over after speech or sounds
-    if (isIOS() || IS_ANDROID) setTimeout(begin, 500); else begin();
+    var settle = (isIOS() && Date.now() - lastTTS < 30000) ? 1500 : 500;
+    if (isIOS() || IS_ANDROID) setTimeout(begin, settle); else begin();
   }
 
   document.addEventListener('click', function (e) {
@@ -5482,7 +5497,7 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     if (mic) {
       var card = mic.closest('[data-practice]');
       if (active && active.card === card) {
-        if (active.rec) { active.userStop = true; try { active.rec.stop(); } catch (er) { finish(active); } }
+        if (active.rec) { active.userStop = true; stopRec(active); }
         else finish(active);
       } else {
         startPractice(card);
@@ -5495,6 +5510,10 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
       if (act === 'model') playOne(c.querySelector('.word, .bubble'));
       else if (act === 'mine') { stopAll(); playVoice(c); }
       else if (act === 'compare') compare(c);
+      else if (act === 'repair') {
+        try { sessionStorage.setItem('bd-reopen', c.dataset.key || ''); } catch (e) {}
+        try { location.reload(); } catch (e) {}
+      }
       else if (act === 'retry') {
         var recToggle = document.querySelector('.toggle[data-key="rec"]');
         if (recToggle && recToggle.getAttribute('aria-pressed') === 'true') recToggle.click();
@@ -7486,6 +7505,17 @@ window.__HZ_DATA_GZ = 'H4sIAF/avmoC/3y9za4u3ZKddStbp/0uKef/THdX96WxRM9H1bBkNxACJ
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (q.mode !== 'input' && /^[1-4]$/.test(e.key) && q.options[parseInt(e.key, 10) - 1] !== undefined) nbAnswer(q.options[parseInt(e.key, 10) - 1]);
   });
+
+  try {
+    var reopenKey = sessionStorage.getItem('bd-reopen');
+    if (reopenKey !== null) {
+      sessionStorage.removeItem('bd-reopen');
+      setTimeout(function () {
+        if (reopenKey) scrollToCard(reopenKey);
+        statusEl.textContent = 'Page rechargée : le micro est réinitialisé, tu peux réessayer l\'exercice 🎤.';
+      }, 700);
+    }
+  } catch (e) {}
 
   /* ---------- Back to top ---------- */
   var toTop = document.getElementById('totop');
